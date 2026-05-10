@@ -16,15 +16,21 @@ body {
 
 body[data-shot="generator"] .hero,
 body[data-shot="generator"] .pipeline,
+body[data-shot="generator"] .sample-section,
+body[data-shot="generator"] .intake-section,
 body[data-shot="generator"] .offer-section,
 body[data-shot="generator"] .launch,
 body[data-shot="offer"] .hero,
 body[data-shot="offer"] .workspace,
 body[data-shot="offer"] .pipeline,
+body[data-shot="offer"] .sample-section,
+body[data-shot="offer"] .intake-section,
 body[data-shot="offer"] .launch,
 body[data-shot="crm"] .hero,
 body[data-shot="crm"] .workspace,
 body[data-shot="crm"] .offer-section,
+body[data-shot="crm"] .sample-section,
+body[data-shot="crm"] .intake-section,
 body[data-shot="crm"] .launch {
   display: none;
 }
@@ -499,6 +505,7 @@ pre {
 
 .pipeline,
 .sample-section,
+.intake-section,
 .launch,
 .offer-section {
   width: min(1180px, calc(100% - 32px));
@@ -527,6 +534,159 @@ pre {
 .sample-builder {
   display: grid;
   gap: 14px;
+}
+
+.intake-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.intake-form,
+.intake-summary {
+  padding: 16px;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #f8f5ee;
+}
+
+.package-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.package-tabs button {
+  min-height: 72px;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #d8d1c5;
+  border-radius: 8px;
+  background: #fffdf8;
+  color: #21302d;
+}
+
+.package-tabs button.active {
+  border-color: #21302d;
+  background: #21302d;
+  color: #f9faf7;
+}
+
+.package-tabs strong,
+.package-tabs span {
+  display: block;
+}
+
+.package-tabs span {
+  margin-top: 6px;
+  color: #66806d;
+  font-weight: 900;
+}
+
+.package-tabs button.active span {
+  color: #d6f264;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.intake-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.intake-actions button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 8px;
+  background: #21302d;
+  color: #fff;
+  font-weight: 900;
+}
+
+.intake-actions button + button {
+  background: #d6f264;
+  color: #21302d;
+}
+
+.intake-summary {
+  display: grid;
+  gap: 14px;
+}
+
+.intake-summary span {
+  display: block;
+  color: #66756f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.intake-summary strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 38px;
+}
+
+.intake-summary p {
+  margin: 6px 0 0;
+  color: #4b5853;
+  line-height: 1.55;
+}
+
+.intake-summary ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #33413d;
+  line-height: 1.8;
+}
+
+.recent-intakes {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2ddd2;
+}
+
+.recent-intakes button {
+  min-height: 58px;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.recent-intakes button strong,
+.recent-intakes button span {
+  display: block;
+  text-transform: none;
+}
+
+.recent-intakes button strong {
+  margin: 0;
+  font-size: 15px;
+}
+
+.recent-intakes button span {
+  margin-top: 5px;
+  color: #66806d;
+}
+
+.delivery-output-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .table-actions {
@@ -836,10 +996,16 @@ pre {
   .form-grid,
   .output-grid,
   .offer-grid,
+  .intake-grid,
+  .delivery-output-grid,
   .import-panel,
   .dashboard-strip,
   .task-list,
   .launch-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .package-tabs {
     grid-template-columns: 1fr;
   }
 

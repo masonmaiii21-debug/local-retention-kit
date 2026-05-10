@@ -66,6 +66,23 @@ const sampleLeads = [
   { id: "lead-2", name: "Lucas Brown", stage: "未回复", value: 140, days: 5, need: "two-dog grooming" },
   { id: "lead-3", name: "Emma Davis", stage: "需复购", value: 75, days: 34, need: "monthly grooming" },
 ];
+const servicePackages = {
+  Starter: {
+    price: 99,
+    promise: "24 小时内交付第一版文案包",
+    deliverables: ["20 条评论回复模板", "20 条复购提醒文案", "10 条未成交跟进文案", "客户跟进表格"],
+  },
+  Setup: {
+    price: 199,
+    promise: "48 小时内交付定制文案包和设置说明",
+    deliverables: ["Starter 全部内容", "按店铺语气改写", "30 分钟设置指导", "7 天后复盘一次"],
+  },
+  "Done-for-you": {
+    price: 299,
+    promise: "72 小时内整理首批真实客户并生成跟进包",
+    deliverables: ["Setup 全部内容", "导入最多 50 个客户", "生成首批真实跟进文案", "提供 2 周使用建议"],
+  },
+};
 
 function buildFollowUp({ businessName, leadName, stage, days, channel, service, objection, tone }) {
   const business = businessName.trim() || "Your business";
@@ -136,6 +153,77 @@ function buildSamplePack({ prospectName, observation, service, tone }) {
   };
 }
 
+function buildDeliveryPack({ clientBusiness, clientContact, clientEmail, clientPackage, clientGoal, clientTools, clientDeadline, clientVoice, niche }) {
+  const selectedPackage = servicePackages[clientPackage] || servicePackages.Starter;
+  const business = clientBusiness.trim() || "Client business";
+  const contact = clientContact.trim() || "there";
+  const email = clientEmail.trim() || "client@example.com";
+  const goal = clientGoal.trim() || "increase repeat bookings and follow up with leads faster";
+  const tools = clientTools.trim() || "Google reviews, text messages, email, and a customer list";
+  const deadline = clientDeadline.trim() || "within 24 hours after payment";
+  const voice = clientVoice.trim() || "friendly, clear, and professional";
+  const industry = niches[niche]?.label || "local service";
+  const deliverables = selectedPackage.deliverables.map((item) => `- ${item}`).join("\n");
+
+  return {
+    invoice: `Package: ${clientPackage} - $${selectedPackage.price}
+Client: ${business}
+Contact: ${contact}
+Email: ${email}
+Delivery target: ${deadline}
+
+Invoice note:
+${clientPackage} retention kit for ${business}. ${selectedPackage.promise}.`,
+    confirmation: `Subject: ${business} ${clientPackage} retention kit - next steps
+
+Hi ${contact},
+
+Thanks for moving forward with the ${clientPackage} retention kit for ${business}. Once payment is complete, I will prepare the first draft on this timeline: ${deadline}.
+
+To keep the first version useful, I will focus on this goal:
+${goal}
+
+I will use a ${voice} tone and build around your current tools: ${tools}.
+
+Best,
+Mason`,
+    checklist: `Client intake checklist
+
+Business: ${business}
+Industry: ${industry}
+Package: ${clientPackage} ($${selectedPackage.price})
+Tone: ${voice}
+Goal: ${goal}
+Current tools/data: ${tools}
+Deadline: ${deadline}
+
+Deliverables:
+${deliverables}
+
+Before delivery:
+- Confirm payment received in PayPal
+- Ask for recent reviews or customer examples if missing
+- Generate review replies, rebooking reminders, and lead follow-ups
+- Export or copy the finished pack into a simple document
+- Send the delivery email and mark the lead as 已预约 or 需复购`,
+    deliveryEmail: `Subject: First draft for ${business}
+
+Hi ${contact},
+
+Here is the first draft of your ${clientPackage} retention kit.
+
+Included:
+${deliverables}
+
+I focused on this goal: ${goal}
+
+Please reply with any tone changes or examples that should sound more like your team. I can revise the first version once and then help you decide where to use each message.
+
+Best,
+Mason`,
+  };
+}
+
 async function copyText(text) {
   await navigator.clipboard?.writeText(text);
 }
@@ -164,6 +252,33 @@ function downloadLeadsCsv(leads) {
   link.download = "local-retention-leads.csv";
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function downloadTextFile(filename, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function sanitizeFileName(value) {
+  return String(value || "client")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "client";
+}
+
+function loadIntakes() {
+  try {
+    const stored = localStorage.getItem("local-retention-kit-intakes");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
 }
 
 function parseCsv(text) {
@@ -310,11 +425,13 @@ function leadToDb(lead, userId) {
 
 function App() {
   const [leads, setLeads] = useState(loadLeads);
+  const [intakes, setIntakes] = useState(loadIntakes);
   const [selectedLeadId, setSelectedLeadId] = useState("lead-1");
   const [session, setSession] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [syncStatus, setSyncStatus] = useState("");
   const [importStatus, setImportStatus] = useState("");
+  const [deliveryStatus, setDeliveryStatus] = useState("");
   const [niche, setNiche] = useState("pet");
   const [businessName, setBusinessName] = useState(niches.pet.business);
   const [rebookDays, setRebookDays] = useState(28);
@@ -330,6 +447,14 @@ function App() {
   const [prospectName, setProspectName] = useState("Austin Pet Stylist");
   const [prospectObservation, setProspectObservation] = useState("appointment-based small dog grooming with a personal owner-led tone");
   const [sampleService, setSampleService] = useState("small dog grooming appointment");
+  const [clientBusiness, setClientBusiness] = useState("Austin Pet Stylist");
+  const [clientContact, setClientContact] = useState("Owner");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPackage, setClientPackage] = useState("Starter");
+  const [clientGoal, setClientGoal] = useState("get more repeat grooming bookings from past customers");
+  const [clientTools, setClientTools] = useState("Google reviews, Instagram DMs, appointment list");
+  const [clientDeadline, setClientDeadline] = useState("within 24 hours after payment");
+  const [clientVoice, setClientVoice] = useState("friendly, calm, and concise");
 
   const active = niches[niche];
   const followUp = useMemo(
@@ -348,10 +473,28 @@ function App() {
     () => buildSamplePack({ prospectName, observation: prospectObservation, service: sampleService, tone }),
     [prospectName, prospectObservation, sampleService, tone]
   );
+  const deliveryPack = useMemo(
+    () => buildDeliveryPack({
+      clientBusiness,
+      clientContact,
+      clientEmail,
+      clientPackage,
+      clientGoal,
+      clientTools,
+      clientDeadline,
+      clientVoice,
+      niche,
+    }),
+    [clientBusiness, clientContact, clientEmail, clientPackage, clientGoal, clientTools, clientDeadline, clientVoice, niche]
+  );
 
   useEffect(() => {
     localStorage.setItem("local-retention-kit-leads", JSON.stringify(leads));
   }, [leads]);
+
+  useEffect(() => {
+    localStorage.setItem("local-retention-kit-intakes", JSON.stringify(intakes));
+  }, [intakes]);
 
   useEffect(() => {
     if (!hasSupabaseConfig) return undefined;
@@ -531,6 +674,48 @@ function App() {
     setImportStatus(`已导入 ${imported.length} 个客户，并按最近消费自动标记跟进阶段。`);
   }
 
+  function saveClientIntake() {
+    const selectedPackage = servicePackages[clientPackage] || servicePackages.Starter;
+    const intake = {
+      id: `intake-${Date.now()}`,
+      business: clientBusiness.trim() || "New client",
+      contact: clientContact.trim() || "Owner",
+      email: clientEmail.trim(),
+      packageName: clientPackage,
+      value: selectedPackage.price,
+      goal: clientGoal.trim(),
+      deadline: clientDeadline.trim(),
+      createdAt: new Date().toISOString(),
+    };
+
+    setIntakes((current) => [intake, ...current].slice(0, 8));
+    const lead = {
+      id: `lead-${Date.now()}`,
+      name: intake.business,
+      stage: "已报价",
+      value: intake.value,
+      days: 0,
+      need: `${intake.packageName} retention kit - ${intake.goal || active.service}`,
+    };
+    setLeads((current) => [lead, ...current]);
+    applyLead(lead);
+    setDeliveryStatus(`${intake.business} 已保存到交付队列，并加入客户跟进表。`);
+  }
+
+  function downloadCurrentDeliveryPack() {
+    const content = [
+      deliveryPack.invoice,
+      "\n---\n",
+      deliveryPack.confirmation,
+      "\n---\n",
+      deliveryPack.checklist,
+      "\n---\n",
+      deliveryPack.deliveryEmail,
+    ].join("\n");
+    downloadTextFile(`${sanitizeFileName(clientBusiness)}-${clientPackage.toLowerCase()}-delivery-pack.txt`, content);
+    setDeliveryStatus("交付包已下载，可以作为付款后的第一版交付文档。");
+  }
+
   async function handleCsvUpload(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -541,6 +726,7 @@ function App() {
 
   const dueLeads = leads.filter((lead) => lead.stage === "未回复" || lead.stage === "已报价" || lead.stage === "需复购");
   const totalPipelineValue = leads.reduce((sum, lead) => sum + Number(lead.value || 0), 0);
+  const activePackage = servicePackages[clientPackage] || servicePackages.Starter;
 
   return (
     <main>
@@ -576,6 +762,9 @@ function App() {
               </a>
               <a className="secondary" href="#sample-pack">
                 生成免费样例
+              </a>
+              <a className="secondary" href="#intake">
+                接单交付
               </a>
             </div>
           </div>
@@ -787,6 +976,121 @@ function App() {
             <OutputCard icon={<RefreshCcw size={18} />} title="复购提醒样例" text={samplePack.rebook} />
             <OutputCard icon={<MessageSquareText size={18} />} title="未成交跟进样例" text={samplePack.inquiry} />
           </div>
+        </div>
+      </section>
+
+      <section className="intake-section" id="intake">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="eyebrow">Client Intake</p>
+            <h2>客户同意后，快速生成收款和交付包</h2>
+          </div>
+          <p className="section-note">
+            用它把“客户说可以”变成可执行订单：确认套餐、生成 PayPal 备注、保存线索、下载交付文档。
+          </p>
+        </div>
+
+        <div className="intake-grid">
+          <div className="intake-form">
+            <div className="package-tabs" aria-label="Package selector">
+              {Object.entries(servicePackages).map(([name, item]) => (
+                <button
+                  className={clientPackage === name ? "active" : ""}
+                  key={name}
+                  onClick={() => setClientPackage(name)}
+                >
+                  <strong>{name}</strong>
+                  <span>${item.price}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="form-grid">
+              <label>
+                店名
+                <input value={clientBusiness} onChange={(event) => setClientBusiness(event.target.value)} />
+              </label>
+              <label>
+                联系人
+                <input value={clientContact} onChange={(event) => setClientContact(event.target.value)} />
+              </label>
+              <label>
+                客户邮箱
+                <input placeholder="client@example.com" value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} />
+              </label>
+              <label>
+                交付时间
+                <input value={clientDeadline} onChange={(event) => setClientDeadline(event.target.value)} />
+              </label>
+              <label>
+                品牌语气
+                <input value={clientVoice} onChange={(event) => setClientVoice(event.target.value)} />
+              </label>
+              <label>
+                现有工具/数据
+                <input value={clientTools} onChange={(event) => setClientTools(event.target.value)} />
+              </label>
+              <label className="full-span">
+                客户目标
+                <textarea value={clientGoal} onChange={(event) => setClientGoal(event.target.value)} />
+              </label>
+            </div>
+
+            <div className="intake-actions">
+              <button onClick={saveClientIntake}>
+                <Check size={16} />
+                保存为订单线索
+              </button>
+              <button onClick={downloadCurrentDeliveryPack}>
+                <Download size={16} />
+                下载交付包
+              </button>
+            </div>
+
+            {deliveryStatus && (
+              <div className="import-status">
+                <AlertCircle size={16} />
+                <span>{deliveryStatus}</span>
+              </div>
+            )}
+          </div>
+
+          <aside className="intake-summary">
+            <div>
+              <span>当前套餐</span>
+              <strong>${activePackage.price}</strong>
+              <p>{activePackage.promise}</p>
+            </div>
+            <ul>
+              {activePackage.deliverables.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <div className="recent-intakes">
+              <span>最近订单线索</span>
+              {intakes.length === 0 && <p>还没有保存订单。保存后这里会显示最近 8 个客户。</p>}
+              {intakes.map((item) => (
+                <button key={item.id} onClick={() => {
+                  setClientBusiness(item.business);
+                  setClientContact(item.contact);
+                  setClientEmail(item.email);
+                  setClientPackage(item.packageName);
+                  setClientGoal(item.goal);
+                  setClientDeadline(item.deadline);
+                }}>
+                  <strong>{item.business}</strong>
+                  <span>{item.packageName} · ${item.value}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+
+        <div className="delivery-output-grid">
+          <OutputCard icon={<PackageCheck size={18} />} title="PayPal 账单备注" text={deliveryPack.invoice} />
+          <OutputCard icon={<Mail size={18} />} title="付款后确认邮件" text={deliveryPack.confirmation} />
+          <OutputCard icon={<Check size={18} />} title="交付检查清单" text={deliveryPack.checklist} />
+          <OutputCard icon={<Send size={18} />} title="第一版交付邮件" text={deliveryPack.deliveryEmail} />
         </div>
       </section>
 
