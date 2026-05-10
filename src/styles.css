@@ -303,6 +303,7 @@ main {
 }
 
 .offer-box span,
+.settings-box span,
 .cloud-box span {
   color: #66806d;
   font-size: 13px;
@@ -312,6 +313,24 @@ main {
 .offer-box p {
   margin: 8px 0 0;
   line-height: 1.55;
+}
+
+.settings-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px;
+  background: #fffdf8;
+  border: 1px solid #e4ded3;
+  border-radius: 8px;
+}
+
+.settings-box label {
+  font-size: 12px;
+}
+
+.settings-box input {
+  min-height: 38px;
 }
 
 .cloud-box {
@@ -611,7 +630,7 @@ pre {
 
 .lead-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1.2fr) minmax(120px, 1fr) 100px 100px 132px;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(115px, 0.8fr) 90px 90px minmax(150px, 1fr) 132px;
   gap: 10px;
   min-height: 52px;
   padding: 10px 12px;

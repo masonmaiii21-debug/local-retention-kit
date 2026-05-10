@@ -67,8 +67,8 @@ const sampleLeads = [
   { id: "lead-3", name: "Emma Davis", stage: "需复购", value: 75, days: 34, need: "monthly grooming" },
 ];
 
-function buildFollowUp({ niche, leadName, stage, days, channel, service, objection, tone }) {
-  const business = niches[niche].business;
+function buildFollowUp({ businessName, leadName, stage, days, channel, service, objection, tone }) {
+  const business = businessName.trim() || "Your business";
   const softer = tone === "温暖" ? "Hope you and your family are doing well." : "Quick follow-up.";
   const urgency = days > 3 ? "I wanted to make sure this did not get buried." : "I wanted to check in while the details are still fresh.";
   const objectionLine = {
@@ -99,8 +99,8 @@ Best,
 ${business}`;
 }
 
-function buildReviewReply({ niche, rating, review, tone }) {
-  const business = niches[niche].business;
+function buildReviewReply({ businessName, rating, review, tone }) {
+  const business = businessName.trim() || "Your business";
   const positive = rating >= 4;
   const apology = rating <= 2;
   const detail = review.trim() ? ` We appreciate you mentioning "${review.trim().slice(0, 70)}".` : "";
@@ -116,8 +116,8 @@ function buildReviewReply({ niche, rating, review, tone }) {
   return `Thank you for taking the time to share this. We appreciate the honest feedback about ${business}.${detail} We will review this with the team and keep improving.`;
 }
 
-function buildRebook({ niche, leadName, service, tone }) {
-  const business = niches[niche].business;
+function buildRebook({ businessName, leadName, service, tone }) {
+  const business = businessName.trim() || "Your business";
   const warm = tone === "温暖" ? "We loved having you in last time." : "It may be time to book again.";
   return `Hi ${leadName}, ${business} here. ${warm} Would you like me to reserve a spot for your next ${service}? I can send two available times.`;
 }
@@ -205,13 +205,13 @@ function daysSince(dateValue) {
   return Math.max(0, Math.floor(diff / 86400000));
 }
 
-function stageFromOrders(orderCount, days) {
-  if (days >= 60) return "未回复";
-  if (days >= 28 || orderCount >= 2) return "需复购";
+function stageFromOrders(orderCount, days, rebookDays = 28) {
+  if (days >= rebookDays * 2) return "未回复";
+  if (days >= rebookDays || orderCount >= 2) return "需复购";
   return "已预约";
 }
 
-function ordersToLeads(csvText) {
+function ordersToLeads(csvText, rebookDays = 28) {
   const rows = parseCsv(csvText);
   if (rows.length < 2) return [];
 
@@ -261,7 +261,7 @@ function ordersToLeads(csvText) {
   return Array.from(grouped.values()).map((lead) => ({
     id: lead.id,
     name: lead.name,
-    stage: stageFromOrders(lead.orderCount, lead.days),
+    stage: stageFromOrders(lead.orderCount, lead.days, rebookDays),
     value: lead.value,
     days: lead.days,
     need: `${lead.need} (${lead.orderCount} orders)`,
@@ -302,6 +302,8 @@ function App() {
   const [syncStatus, setSyncStatus] = useState("");
   const [importStatus, setImportStatus] = useState("");
   const [niche, setNiche] = useState("pet");
+  const [businessName, setBusinessName] = useState(niches.pet.business);
+  const [rebookDays, setRebookDays] = useState(28);
   const [leadName, setLeadName] = useState("Mia");
   const [stage, setStage] = useState("已报价");
   const [days, setDays] = useState(3);
@@ -314,16 +316,16 @@ function App() {
 
   const active = niches[niche];
   const followUp = useMemo(
-    () => buildFollowUp({ niche, leadName, stage, days, channel, service, objection, tone }),
-    [niche, leadName, stage, days, channel, service, objection, tone]
+    () => buildFollowUp({ businessName, leadName, stage, days, channel, service, objection, tone }),
+    [businessName, leadName, stage, days, channel, service, objection, tone]
   );
   const reviewReply = useMemo(
-    () => buildReviewReply({ niche, rating, review, tone }),
-    [niche, rating, review, tone]
+    () => buildReviewReply({ businessName, rating, review, tone }),
+    [businessName, rating, review, tone]
   );
   const rebook = useMemo(
-    () => buildRebook({ niche, leadName, service, tone }),
-    [niche, leadName, service, tone]
+    () => buildRebook({ businessName, leadName, service, tone }),
+    [businessName, leadName, service, tone]
   );
 
   useEffect(() => {
@@ -367,6 +369,7 @@ function App() {
 
   function switchNiche(next) {
     setNiche(next);
+    setBusinessName(niches[next].business);
     setService(niches[next].service);
     setChannel(niches[next].channels[0]);
     setObjection(niches[next].objection);
@@ -492,7 +495,7 @@ function App() {
   }
 
   async function importOrdersCsvText(csvText) {
-    const imported = ordersToLeads(csvText);
+    const imported = ordersToLeads(csvText, Number(rebookDays) || 28);
     if (imported.length === 0) {
       setImportStatus("没有识别到订单。请确认 CSV 有表头和至少一行订单。");
       return;
@@ -596,6 +599,23 @@ function App() {
           <div className="offer-box">
             <span>服务承诺</span>
             <p>{active.promise}</p>
+          </div>
+
+          <div className="settings-box">
+            <span>商家设置</span>
+            <label>
+              店名
+              <input value={businessName} onChange={(event) => setBusinessName(event.target.value)} />
+            </label>
+            <label>
+              复购周期
+              <input
+                type="number"
+                min="1"
+                value={rebookDays}
+                onChange={(event) => setRebookDays(Number(event.target.value))}
+              />
+            </label>
           </div>
 
           <div className="cloud-box">
@@ -781,6 +801,7 @@ function App() {
             <span>阶段</span>
             <span>金额</span>
             <span>未联系</span>
+            <span>服务项目</span>
             <span>操作</span>
           </div>
           {leads.map((lead) => (
@@ -791,6 +812,7 @@ function App() {
               </select>
               <input type="number" min="0" value={lead.value} onChange={(event) => updateLead(lead.id, { value: Number(event.target.value) })} />
               <input type="number" min="0" value={lead.days} onChange={(event) => updateLead(lead.id, { days: Number(event.target.value) })} />
+              <input value={lead.need} onChange={(event) => updateLead(lead.id, { need: event.target.value })} />
               <div className="row-actions">
                 <button onClick={() => applyLead(lead)}>生成</button>
                 <button className="ghost-danger" title="Delete lead" onClick={() => deleteLead(lead.id)}>
