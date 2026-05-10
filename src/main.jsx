@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowRight,
@@ -7,6 +7,7 @@ import {
   Copy,
   Mail,
   MessageSquareText,
+  PackageCheck,
   RefreshCcw,
   Send,
   Sparkles,
@@ -140,6 +141,18 @@ function App() {
     [niche, leadName, service, tone]
   );
 
+  useEffect(() => {
+    const shotTarget = new URLSearchParams(window.location.search).get("shot");
+    if (!shotTarget) return;
+    document.body.dataset.shot = shotTarget;
+    window.setTimeout(() => {
+      document.getElementById(shotTarget)?.scrollIntoView({ block: "start" });
+    }, 250);
+    return () => {
+      delete document.body.dataset.shot;
+    };
+  }, []);
+
   function switchNiche(next) {
     setNiche(next);
     setService(niches[next].service);
@@ -175,6 +188,9 @@ function App() {
               </a>
               <a className="secondary" href="#launch">
                 看 15 天计划
+              </a>
+              <a className="secondary" href="#offer">
+                看报价
               </a>
             </div>
           </div>
@@ -334,6 +350,57 @@ function App() {
               </button>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="offer-section" id="offer">
+        <div className="section-heading">
+          <p className="eyebrow">Productized Service</p>
+          <h2>直接拿去卖的服务包</h2>
+        </div>
+        <div className="offer-grid">
+          <article className="pricing-card">
+            <div className="price-top">
+              <PackageCheck size={22} />
+              <strong>Starter</strong>
+            </div>
+            <h3>$99</h3>
+            <p>适合第一个试单，用低风险价格换案例和反馈。</p>
+            <ul>
+              <li>20 条评论回复模板</li>
+              <li>20 条复购提醒文案</li>
+              <li>10 条未成交跟进文案</li>
+              <li>一个客户跟进表格</li>
+            </ul>
+          </article>
+          <article className="pricing-card featured">
+            <div className="price-top">
+              <PackageCheck size={22} />
+              <strong>Setup</strong>
+            </div>
+            <h3>$199</h3>
+            <p>主推档位，包含按店铺风格定制和一次设置指导。</p>
+            <ul>
+              <li>Starter 全部内容</li>
+              <li>按商家语气改写</li>
+              <li>30 分钟视频设置指导</li>
+              <li>7 天后复盘一次</li>
+            </ul>
+          </article>
+          <article className="pricing-card">
+            <div className="price-top">
+              <PackageCheck size={22} />
+              <strong>Done-for-you</strong>
+            </div>
+            <h3>$299</h3>
+            <p>适合愿意省时间的老板，你直接帮他整理首批真实客户。</p>
+            <ul>
+              <li>Setup 全部内容</li>
+              <li>导入最多 50 个客户</li>
+              <li>生成首批真实跟进文案</li>
+              <li>提供 2 周使用建议</li>
+            </ul>
+          </article>
         </div>
       </section>
 

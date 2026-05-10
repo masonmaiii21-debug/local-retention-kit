@@ -14,6 +14,22 @@ body {
   margin: 0;
 }
 
+body[data-shot="generator"] .hero,
+body[data-shot="generator"] .pipeline,
+body[data-shot="generator"] .offer-section,
+body[data-shot="generator"] .launch,
+body[data-shot="offer"] .hero,
+body[data-shot="offer"] .workspace,
+body[data-shot="offer"] .pipeline,
+body[data-shot="offer"] .launch {
+  display: none;
+}
+
+body[data-shot="generator"] .workspace,
+body[data-shot="offer"] .offer-section {
+  margin-top: 36px;
+}
+
 button,
 input,
 select,
@@ -110,8 +126,8 @@ main {
 .hero-copy h1 {
   margin: 10px 0 18px;
   max-width: 760px;
-  font-size: clamp(44px, 6vw, 84px);
-  line-height: 0.98;
+  font-size: clamp(40px, 5vw, 68px);
+  line-height: 1.05;
   letter-spacing: 0;
 }
 
@@ -421,7 +437,8 @@ pre {
 }
 
 .pipeline,
-.launch {
+.launch,
+.offer-section {
   width: min(1180px, calc(100% - 32px));
   margin: 18px auto;
   padding: 20px;
@@ -463,6 +480,65 @@ pre {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.offer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pricing-card {
+  min-height: 310px;
+  padding: 18px;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #f8f5ee;
+}
+
+.pricing-card.featured {
+  background: #21302d;
+  color: #f9faf7;
+  border-color: #21302d;
+}
+
+.price-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #66806d;
+  font-weight: 800;
+}
+
+.pricing-card.featured .price-top {
+  color: #d6f264;
+}
+
+.pricing-card h3 {
+  margin: 16px 0 8px;
+  font-size: 42px;
+  letter-spacing: 0;
+}
+
+.pricing-card p {
+  margin: 0 0 16px;
+  color: #4b5853;
+  line-height: 1.55;
+}
+
+.pricing-card.featured p {
+  color: rgba(249, 250, 247, 0.76);
+}
+
+.pricing-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #33413d;
+  line-height: 1.85;
+}
+
+.pricing-card.featured ul {
+  color: rgba(249, 250, 247, 0.86);
 }
 
 .launch-card {
@@ -508,6 +584,7 @@ pre {
 
   .form-grid,
   .output-grid,
+  .offer-grid,
   .launch-grid {
     grid-template-columns: 1fr;
   }
