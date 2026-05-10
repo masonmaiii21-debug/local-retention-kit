@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import "./styles.css";
+import { hasSupabaseConfig, supabase } from "./supabaseClient";
 
 const niches = {
   pet: {
@@ -143,9 +144,38 @@ function downloadLeadsCsv(leads) {
   URL.revokeObjectURL(url);
 }
 
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function dbToLead(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    stage: row.stage,
+    value: Number(row.value || 0),
+    days: Number(row.days_since_contact || 0),
+    need: row.service_need || "",
+  };
+}
+
+function leadToDb(lead, userId) {
+  return {
+    user_id: userId,
+    name: lead.name,
+    stage: lead.stage,
+    value: Number(lead.value || 0),
+    days_since_contact: Number(lead.days || 0),
+    service_need: lead.need || "",
+  };
+}
+
 function App() {
   const [leads, setLeads] = useState(loadLeads);
   const [selectedLeadId, setSelectedLeadId] = useState("lead-1");
+  const [session, setSession] = useState(null);
+  const [authEmail, setAuthEmail] = useState("");
+  const [syncStatus, setSyncStatus] = useState("");
   const [niche, setNiche] = useState("pet");
   const [leadName, setLeadName] = useState("Mia");
   const [stage, setStage] = useState("已报价");
@@ -176,6 +206,29 @@ function App() {
   }, [leads]);
 
   useEffect(() => {
+    if (!hasSupabaseConfig) return undefined;
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSession(data.session);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasSupabaseConfig || !session?.user) return;
+    loadCloudLeads();
+  }, [session?.user?.id]);
+
+  useEffect(() => {
     const shotTarget = new URLSearchParams(window.location.search).get("shot");
     if (!shotTarget) return;
     document.body.dataset.shot = shotTarget;
@@ -194,6 +247,47 @@ function App() {
     setObjection(niches[next].objection);
   }
 
+  async function loadCloudLeads() {
+    setSyncStatus("正在读取云端客户...");
+    const { data, error } = await supabase
+      .from("leads")
+      .select("id,name,stage,value,days_since_contact,service_need")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      setSyncStatus(`云端读取失败：${error.message}`);
+      return;
+    }
+
+    const cloudLeads = data.map(dbToLead);
+    setLeads(cloudLeads.length > 0 ? cloudLeads : sampleLeads);
+    setSelectedLeadId(cloudLeads[0]?.id || sampleLeads[0].id);
+    setSyncStatus(cloudLeads.length > 0 ? "云端客户已同步。" : "云端暂无客户，先显示示例数据。");
+  }
+
+  async function signInWithEmail() {
+    if (!authEmail.trim()) {
+      setSyncStatus("请输入邮箱。");
+      return;
+    }
+
+    setSyncStatus("正在发送登录链接...");
+    const { error } = await supabase.auth.signInWithOtp({
+      email: authEmail.trim(),
+      options: {
+        emailRedirectTo: window.location.href.split("#")[0].split("?")[0],
+      },
+    });
+
+    setSyncStatus(error ? `登录链接发送失败：${error.message}` : "登录链接已发送，请检查邮箱。");
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    setSession(null);
+    setSyncStatus("已退出，当前使用浏览器本地数据。");
+  }
+
   function applyLead(lead) {
     setSelectedLeadId(lead.id);
     setLeadName(lead.name.split(" ")[0] || lead.name);
@@ -202,7 +296,25 @@ function App() {
     setService(lead.need);
   }
 
-  function saveCurrentLead() {
+  async function persistLead(lead) {
+    if (!hasSupabaseConfig || !session?.user) return lead;
+
+    const payload = leadToDb(lead, session.user.id);
+    const query = isUuid(lead.id)
+      ? supabase.from("leads").update(payload).eq("id", lead.id).select().single()
+      : supabase.from("leads").insert(payload).select().single();
+
+    const { data, error } = await query;
+    if (error) {
+      setSyncStatus(`保存失败：${error.message}`);
+      return lead;
+    }
+
+    setSyncStatus("已保存到云端。");
+    return dbToLead(data);
+  }
+
+  async function saveCurrentLead() {
     const nextLead = {
       id: selectedLeadId || `lead-${Date.now()}`,
       name: leadName.trim() || "New customer",
@@ -212,14 +324,17 @@ function App() {
       need: service.trim() || active.service,
     };
 
+    const savedLead = await persistLead(nextLead);
     setLeads((current) => {
-      const exists = current.some((lead) => lead.id === nextLead.id);
-      return exists ? current.map((lead) => lead.id === nextLead.id ? nextLead : lead) : [nextLead, ...current];
+      const exists = current.some((lead) => lead.id === nextLead.id || lead.id === savedLead.id);
+      return exists
+        ? current.map((lead) => lead.id === nextLead.id || lead.id === savedLead.id ? savedLead : lead)
+        : [savedLead, ...current];
     });
-    setSelectedLeadId(nextLead.id);
+    setSelectedLeadId(savedLead.id);
   }
 
-  function createLead() {
+  async function createLead() {
     const nextLead = {
       id: `lead-${Date.now()}`,
       name: "New Lead",
@@ -228,15 +343,22 @@ function App() {
       days: 0,
       need: active.service,
     };
-    setLeads((current) => [nextLead, ...current]);
-    applyLead(nextLead);
+    const savedLead = await persistLead(nextLead);
+    setLeads((current) => [savedLead, ...current]);
+    applyLead(savedLead);
   }
 
   function updateLead(id, patch) {
     setLeads((current) => current.map((lead) => lead.id === id ? { ...lead, ...patch } : lead));
   }
 
-  function deleteLead(id) {
+  async function deleteLead(id) {
+    if (hasSupabaseConfig && session?.user && isUuid(id)) {
+      const { error } = await supabase.from("leads").delete().eq("id", id);
+      setSyncStatus(error ? `删除失败：${error.message}` : "已从云端删除。");
+      if (error) return;
+    }
+
     setLeads((current) => current.filter((lead) => lead.id !== id));
     if (selectedLeadId === id) {
       const fallback = leads.find((lead) => lead.id !== id);
@@ -325,6 +447,31 @@ function App() {
           <div className="offer-box">
             <span>服务承诺</span>
             <p>{active.promise}</p>
+          </div>
+
+          <div className="cloud-box">
+            <span>数据保存</span>
+            {!hasSupabaseConfig && (
+              <p>当前是本地模式。配置 Supabase 后，客户数据可登录后云端保存。</p>
+            )}
+            {hasSupabaseConfig && session?.user && (
+              <>
+                <p>云端模式已开启：{session.user.email}</p>
+                <button onClick={signOut}>退出登录</button>
+              </>
+            )}
+            {hasSupabaseConfig && !session?.user && (
+              <>
+                <p>输入邮箱获取 magic link，登录后云端保存客户。</p>
+                <input
+                  placeholder="you@example.com"
+                  value={authEmail}
+                  onChange={(event) => setAuthEmail(event.target.value)}
+                />
+                <button onClick={signInWithEmail}>发送登录链接</button>
+              </>
+            )}
+            {syncStatus && <small>{syncStatus}</small>}
           </div>
         </aside>
 

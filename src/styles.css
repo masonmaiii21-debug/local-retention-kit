@@ -302,7 +302,8 @@ main {
   border-radius: 8px;
 }
 
-.offer-box span {
+.offer-box span,
+.cloud-box span {
   color: #66806d;
   font-size: 13px;
   font-weight: 800;
@@ -311,6 +312,42 @@ main {
 .offer-box p {
   margin: 8px 0 0;
   line-height: 1.55;
+}
+
+.cloud-box {
+  margin-top: 12px;
+  padding: 14px;
+  background: #f8f5ee;
+  border: 1px solid #e4ded3;
+  border-radius: 8px;
+}
+
+.cloud-box p {
+  margin: 8px 0 10px;
+  color: #4b5853;
+  line-height: 1.55;
+}
+
+.cloud-box input {
+  min-height: 38px;
+  margin-bottom: 8px;
+}
+
+.cloud-box button {
+  min-height: 36px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #21302d;
+  color: #fff;
+  font-weight: 800;
+}
+
+.cloud-box small {
+  display: block;
+  margin-top: 8px;
+  color: #66806d;
+  line-height: 1.4;
 }
 
 .tool-surface {

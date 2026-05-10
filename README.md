@@ -18,6 +18,7 @@
 - 复购提醒文案生成
 - Google/Yelp 等评论回复文案生成
 - 可编辑客户管道，自动保存到浏览器
+- Supabase 配置存在时支持登录和云端保存
 - 一键套用客户生成文案
 - 导出客户 CSV
 - 15 天启动路线
@@ -30,6 +31,10 @@ npm run dev
 ```
 
 默认地址通常是 `http://127.0.0.1:5173`。
+
+## 云端保存
+
+Supabase 配置步骤见 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)。
 
 ## 变现包装
 
