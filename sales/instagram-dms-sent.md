@@ -5,13 +5,15 @@
 | Date | Business | Instagram | Status |
 | --- | --- | --- | --- |
 | 2026-05-10 | Austin Pet Stylist | https://www.instagram.com/austinpetstylist/ | Sent |
+| 2026-05-10 | SWAGG | https://www.instagram.com/swaggatx/ | Sent |
+| 2026-05-10 | Evergreen Hound | https://www.instagram.com/evergreenhound/ | Sent |
+| 2026-05-10 | Foxy Roxys | https://www.instagram.com/foxyroxysatx/ | Sent |
 
 ## Pending
 
-The browser session reset while preparing the rest of the batch, so these should be sent next after confirming the Instagram page is still open and no duplicate message exists:
+These website-sourced accounts still need manual verification before sending:
 
 | Business | Instagram |
 | --- | --- |
-| SWAGG | https://www.instagram.com/swaggatx/ |
-| Evergreen Hound | https://www.instagram.com/evergreenhound/ |
-| Foxy Roxys | https://www.instagram.com/foxyroxysatx/ |
+| Austin Pup Culture | https://www.instagram.com/austin_pup_culture/ |
+| Soco Pet Lounge | https://instagram.com/SocoPetLounge_Atx |
