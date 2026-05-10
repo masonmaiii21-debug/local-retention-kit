@@ -2,7 +2,13 @@
 
 一个面向本地服务商的轻量 MVP：帮助宠物美容、美容护理、装修维修等小商家生成未成交跟进、复购提醒和评论回复文案。
 
-这个版本刻意不接 OpenAI API，目标是 15 天内能拿去演示、投放、接第一笔小单。拿到反馈后，再升级为 API 驱动的真正 AI 生成器。
+这个版本前端不暴露 OpenAI API key。评论回复可以通过 Supabase Edge Function 走服务端 AI 生成；如果 OpenAI 临时不可用，系统会自动返回按评论内容定制的备用回复，避免客户流程中断。
+
+Live demo:
+
+```text
+https://masonmaiii21-debug.github.io/local-retention-kit/
+```
 
 ## 为什么选这个方向
 
@@ -54,7 +60,8 @@ Instagram 账号核对见 [sales/instagram-accounts.md](sales/instagram-accounts
 Instagram 已发送/待发送记录见 [sales/instagram-dms-sent.md](sales/instagram-dms-sent.md)。
 PayPal 收款发票模板见 [sales/paypal-invoice-templates.md](sales/paypal-invoice-templates.md)。
 PayPal 发票创建状态见 [sales/paypal-invoice-status.md](sales/paypal-invoice-status.md)。
-完整使用流程图见 [sales/usage-flow.md](sales/usage-flow.md)。
+完整使用流程图和操作 SOP 见 [sales/usage-flow.md](sales/usage-flow.md)。
+项目完成说明见 [sales/project-completion-report.md](sales/project-completion-report.md)。
 
 ## 变现包装
 
