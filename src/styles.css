@@ -524,6 +524,64 @@ pre {
   margin-bottom: 14px;
 }
 
+.import-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #f8f5ee;
+}
+
+.import-panel h2 {
+  margin: 4px 0 8px;
+  font-size: 22px;
+}
+
+.import-panel p:not(.eyebrow) {
+  margin: 0;
+  color: #4b5853;
+  line-height: 1.6;
+}
+
+.import-actions {
+  display: grid;
+  gap: 8px;
+  min-width: 170px;
+}
+
+.import-actions button,
+.file-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid #d8d1c5;
+  border-radius: 8px;
+  background: #fff;
+  color: #21302d;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.file-button input {
+  display: none;
+}
+
+.import-status {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #587064;
+  font-weight: 700;
+}
+
 .dashboard-strip div {
   padding: 16px;
   background: #edf2df;
@@ -746,6 +804,7 @@ pre {
   .form-grid,
   .output-grid,
   .offer-grid,
+  .import-panel,
   .dashboard-strip,
   .task-list,
   .launch-grid {

@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowRight,
+  AlertCircle,
   Check,
   Copy,
   Download,
+  FileUp,
   Mail,
   MessageSquareText,
   PackageCheck,
@@ -53,6 +55,12 @@ const niches = {
 
 const leadStages = ["新咨询", "已报价", "未回复", "已预约", "需复购"];
 const tones = ["专业", "温暖", "简短", "挽回"];
+const sampleOrdersCsv = `customer_name,email,phone,order_date,amount,service
+Mia Chen,mia@example.com,555-0101,2026-04-24,85,dog bath + trim
+Lucas Brown,lucas@example.com,555-0102,2026-04-21,140,two-dog grooming
+Emma Davis,emma@example.com,555-0103,2026-03-17,75,monthly grooming
+Mia Chen,mia@example.com,555-0101,2026-03-20,80,dog bath
+Noah Wilson,noah@example.com,555-0104,2026-02-22,95,nail trim + bath`;
 const sampleLeads = [
   { id: "lead-1", name: "Mia Chen", stage: "已报价", value: 85, days: 2, need: "dog bath + trim" },
   { id: "lead-2", name: "Lucas Brown", stage: "未回复", value: 140, days: 5, need: "two-dog grooming" },
@@ -144,6 +152,122 @@ function downloadLeadsCsv(leads) {
   URL.revokeObjectURL(url);
 }
 
+function parseCsv(text) {
+  const rows = [];
+  let cell = "";
+  let row = [];
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === '"' && inQuotes && next === '"') {
+      cell += '"';
+      index += 1;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      row.push(cell.trim());
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(cell.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
+}
+
+function normalizeHeader(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function pickValue(record, candidates) {
+  for (const candidate of candidates) {
+    const found = record[normalizeHeader(candidate)];
+    if (found) return found;
+  }
+  return "";
+}
+
+function daysSince(dateValue) {
+  const parsed = new Date(dateValue);
+  if (Number.isNaN(parsed.getTime())) return 0;
+  const diff = Date.now() - parsed.getTime();
+  return Math.max(0, Math.floor(diff / 86400000));
+}
+
+function stageFromOrders(orderCount, days) {
+  if (days >= 60) return "未回复";
+  if (days >= 28 || orderCount >= 2) return "需复购";
+  return "已预约";
+}
+
+function ordersToLeads(csvText) {
+  const rows = parseCsv(csvText);
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(normalizeHeader);
+  const grouped = new Map();
+
+  rows.slice(1).forEach((cells, index) => {
+    const record = {};
+    headers.forEach((header, headerIndex) => {
+      record[header] = cells[headerIndex] || "";
+    });
+
+    const name = pickValue(record, ["customer_name", "customer", "client", "name", "buyer_name", "billing_name"]) || `Customer ${index + 1}`;
+    const email = pickValue(record, ["email", "customer_email", "contact_email"]);
+    const phone = pickValue(record, ["phone", "customer_phone", "telephone", "mobile"]);
+    const orderDate = pickValue(record, ["order_date", "date", "created_at", "created", "appointment_date", "booking_date"]);
+    const amount = Number(String(pickValue(record, ["amount", "total", "price", "order_total", "paid", "subtotal"])).replace(/[^0-9.-]/g, "")) || 0;
+    const service = pickValue(record, ["service", "item", "product", "line_item", "appointment_type", "description"]) || "recent service";
+    const key = email || phone || name.toLowerCase();
+
+    const previous = grouped.get(key) || {
+      id: `import-${Date.now()}-${index}`,
+      name,
+      email,
+      phone,
+      value: 0,
+      days: 0,
+      need: service,
+      orderCount: 0,
+      latestDate: "",
+    };
+
+    const currentDate = new Date(orderDate);
+    const previousDate = new Date(previous.latestDate);
+    const isLatest = orderDate && (!previous.latestDate || currentDate > previousDate);
+
+    grouped.set(key, {
+      ...previous,
+      value: Number((previous.value + amount).toFixed(2)),
+      need: isLatest ? service : previous.need,
+      latestDate: isLatest ? orderDate : previous.latestDate,
+      days: isLatest ? daysSince(orderDate) : previous.days,
+      orderCount: previous.orderCount + 1,
+    });
+  });
+
+  return Array.from(grouped.values()).map((lead) => ({
+    id: lead.id,
+    name: lead.name,
+    stage: stageFromOrders(lead.orderCount, lead.days),
+    value: lead.value,
+    days: lead.days,
+    need: `${lead.need} (${lead.orderCount} orders)`,
+  }));
+}
+
 function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
@@ -176,6 +300,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
   const [syncStatus, setSyncStatus] = useState("");
+  const [importStatus, setImportStatus] = useState("");
   const [niche, setNiche] = useState("pet");
   const [leadName, setLeadName] = useState("Mia");
   const [stage, setStage] = useState("已报价");
@@ -364,6 +489,30 @@ function App() {
       const fallback = leads.find((lead) => lead.id !== id);
       if (fallback) applyLead(fallback);
     }
+  }
+
+  async function importOrdersCsvText(csvText) {
+    const imported = ordersToLeads(csvText);
+    if (imported.length === 0) {
+      setImportStatus("没有识别到订单。请确认 CSV 有表头和至少一行订单。");
+      return;
+    }
+
+    setLeads((current) => {
+      const existing = new Map(current.map((lead) => [lead.name.toLowerCase(), lead]));
+      imported.forEach((lead) => existing.set(lead.name.toLowerCase(), lead));
+      return Array.from(existing.values());
+    });
+    applyLead(imported[0]);
+    setImportStatus(`已导入 ${imported.length} 个客户，并按最近消费自动标记跟进阶段。`);
+  }
+
+  async function handleCsvUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    await importOrdersCsvText(text);
+    event.target.value = "";
   }
 
   const dueLeads = leads.filter((lead) => lead.stage === "未回复" || lead.stage === "已报价" || lead.stage === "需复购");
@@ -582,6 +731,33 @@ function App() {
               导出 CSV
             </button>
           </div>
+        </div>
+
+        <div className="import-panel">
+          <div>
+            <p className="eyebrow">Order Import</p>
+            <h2>导入订单 CSV，自动找出该复购客户</h2>
+            <p>
+              支持 Square、Wix、Shopify、Clover 等后台导出的订单表。识别客户名、订单日期、金额和服务项目后，
+              自动合并成客户跟进列表。
+            </p>
+          </div>
+          <div className="import-actions">
+            <label className="file-button">
+              <FileUp size={16} />
+              导入订单 CSV
+              <input type="file" accept=".csv,text/csv" onChange={handleCsvUpload} />
+            </label>
+            <button onClick={() => importOrdersCsvText(sampleOrdersCsv)}>
+              使用示例订单
+            </button>
+          </div>
+          {importStatus && (
+            <div className="import-status">
+              <AlertCircle size={16} />
+              <span>{importStatus}</span>
+            </div>
+          )}
         </div>
 
         <div className="dashboard-strip">
