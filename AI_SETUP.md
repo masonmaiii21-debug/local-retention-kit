@@ -24,7 +24,7 @@ supabase secrets set OPENAI_API_KEY=your_server_side_key
 Optional model override:
 
 ```bash
-supabase secrets set OPENAI_MODEL=gpt-5.5
+supabase secrets set OPENAI_MODEL=gpt-5.4-mini
 ```
 
 3. Deploy the function:
