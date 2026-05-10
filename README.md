@@ -45,6 +45,7 @@ Supabase 配置步骤见 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)。
 开始找第一个客户的执行清单见 [sales/day-1-outreach-plan.md](sales/day-1-outreach-plan.md)。
 第一批潜在客户名单见 [sales/prospect-list-template.csv](sales/prospect-list-template.csv)，前 5 条私信草稿见 [sales/first-5-message-drafts.md](sales/first-5-message-drafts.md)。
 已创建的 Gmail 草稿记录见 [sales/gmail-drafts-created.md](sales/gmail-drafts-created.md)。
+Instagram 账号核对见 [sales/instagram-accounts.md](sales/instagram-accounts.md)，DM 草稿见 [sales/instagram-dm-drafts.md](sales/instagram-dm-drafts.md)。
 
 ## 变现包装
 
