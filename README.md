@@ -17,7 +17,9 @@
 - 未成交客户跟进文案生成
 - 复购提醒文案生成
 - Google/Yelp 等评论回复文案生成
-- 示例客户管道
+- 可编辑客户管道，自动保存到浏览器
+- 一键套用客户生成文案
+- 导出客户 CSV
 - 15 天启动路线
 
 ## 本地运行
@@ -48,4 +50,3 @@ npm run dev
 - Built a React/Vite MVP for local service businesses to generate follow-up, rebooking, and review-response copy across multiple verticals.
 - Designed a niche-first go-to-market workflow targeting pet grooming, med spa, and contractor businesses.
 - Implemented reusable content-generation logic, responsive UI, and a demo CRM pipeline to support productized service sales.
-

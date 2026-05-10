@@ -2,16 +2,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowRight,
-  BarChart3,
-  Clipboard,
+  Check,
   Copy,
+  Download,
   Mail,
   MessageSquareText,
   PackageCheck,
+  Plus,
   RefreshCcw,
   Send,
   Sparkles,
   Star,
+  Trash2,
 } from "lucide-react";
 import "./styles.css";
 
@@ -51,9 +53,9 @@ const niches = {
 const leadStages = ["新咨询", "已报价", "未回复", "已预约", "需复购"];
 const tones = ["专业", "温暖", "简短", "挽回"];
 const sampleLeads = [
-  { name: "Mia Chen", stage: "已报价", value: 85, days: 2, need: "dog bath + trim" },
-  { name: "Lucas Brown", stage: "未回复", value: 140, days: 5, need: "two-dog grooming" },
-  { name: "Emma Davis", stage: "需复购", value: 75, days: 34, need: "monthly grooming" },
+  { id: "lead-1", name: "Mia Chen", stage: "已报价", value: 85, days: 2, need: "dog bath + trim" },
+  { id: "lead-2", name: "Lucas Brown", stage: "未回复", value: 140, days: 5, need: "two-dog grooming" },
+  { id: "lead-3", name: "Emma Davis", stage: "需复购", value: 75, days: 34, need: "monthly grooming" },
 ];
 
 function buildFollowUp({ niche, leadName, stage, days, channel, service, objection, tone }) {
@@ -111,11 +113,39 @@ function buildRebook({ niche, leadName, service, tone }) {
   return `Hi ${leadName}, ${business} here. ${warm} Would you like me to reserve a spot for your next ${service}? I can send two available times.`;
 }
 
-function copyText(text) {
-  navigator.clipboard?.writeText(text);
+async function copyText(text) {
+  await navigator.clipboard?.writeText(text);
+}
+
+function loadLeads() {
+  try {
+    const stored = localStorage.getItem("local-retention-kit-leads");
+    return stored ? JSON.parse(stored) : sampleLeads;
+  } catch {
+    return sampleLeads;
+  }
+}
+
+function toCsvValue(value) {
+  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+}
+
+function downloadLeadsCsv(leads) {
+  const header = ["name", "stage", "value", "days_since_contact", "service_need"];
+  const rows = leads.map((lead) => [lead.name, lead.stage, lead.value, lead.days, lead.need]);
+  const csv = [header, ...rows].map((row) => row.map(toCsvValue).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "local-retention-leads.csv";
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function App() {
+  const [leads, setLeads] = useState(loadLeads);
+  const [selectedLeadId, setSelectedLeadId] = useState("lead-1");
   const [niche, setNiche] = useState("pet");
   const [leadName, setLeadName] = useState("Mia");
   const [stage, setStage] = useState("已报价");
@@ -142,6 +172,10 @@ function App() {
   );
 
   useEffect(() => {
+    localStorage.setItem("local-retention-kit-leads", JSON.stringify(leads));
+  }, [leads]);
+
+  useEffect(() => {
     const shotTarget = new URLSearchParams(window.location.search).get("shot");
     if (!shotTarget) return;
     document.body.dataset.shot = shotTarget;
@@ -159,6 +193,59 @@ function App() {
     setChannel(niches[next].channels[0]);
     setObjection(niches[next].objection);
   }
+
+  function applyLead(lead) {
+    setSelectedLeadId(lead.id);
+    setLeadName(lead.name.split(" ")[0] || lead.name);
+    setStage(lead.stage);
+    setDays(lead.days);
+    setService(lead.need);
+  }
+
+  function saveCurrentLead() {
+    const nextLead = {
+      id: selectedLeadId || `lead-${Date.now()}`,
+      name: leadName.trim() || "New customer",
+      stage,
+      value: Number(leads.find((lead) => lead.id === selectedLeadId)?.value || 99),
+      days: Number(days),
+      need: service.trim() || active.service,
+    };
+
+    setLeads((current) => {
+      const exists = current.some((lead) => lead.id === nextLead.id);
+      return exists ? current.map((lead) => lead.id === nextLead.id ? nextLead : lead) : [nextLead, ...current];
+    });
+    setSelectedLeadId(nextLead.id);
+  }
+
+  function createLead() {
+    const nextLead = {
+      id: `lead-${Date.now()}`,
+      name: "New Lead",
+      stage: "新咨询",
+      value: 99,
+      days: 0,
+      need: active.service,
+    };
+    setLeads((current) => [nextLead, ...current]);
+    applyLead(nextLead);
+  }
+
+  function updateLead(id, patch) {
+    setLeads((current) => current.map((lead) => lead.id === id ? { ...lead, ...patch } : lead));
+  }
+
+  function deleteLead(id) {
+    setLeads((current) => current.filter((lead) => lead.id !== id));
+    if (selectedLeadId === id) {
+      const fallback = leads.find((lead) => lead.id !== id);
+      if (fallback) applyLead(fallback);
+    }
+  }
+
+  const dueLeads = leads.filter((lead) => lead.stage === "未回复" || lead.stage === "已报价" || lead.stage === "需复购");
+  const totalPipelineValue = leads.reduce((sum, lead) => sum + Number(lead.value || 0), 0);
 
   return (
     <main>
@@ -328,28 +415,82 @@ function App() {
         </section>
       </section>
 
-      <section className="pipeline">
-        <div className="section-heading">
-          <p className="eyebrow">Demo CRM</p>
-          <h2>给客户看的“问题可视化”</h2>
+      <section className="pipeline" id="crm">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="eyebrow">Working CRM</p>
+            <h2>可操作的客户跟进工作台</h2>
+          </div>
+          <div className="table-actions">
+            <button onClick={createLead}>
+              <Plus size={16} />
+              新客户
+            </button>
+            <button onClick={saveCurrentLead}>
+              <Check size={16} />
+              保存当前客户
+            </button>
+            <button onClick={() => downloadLeadsCsv(leads)}>
+              <Download size={16} />
+              导出 CSV
+            </button>
+          </div>
         </div>
+
+        <div className="dashboard-strip">
+          <div>
+            <strong>{leads.length}</strong>
+            <span>客户/线索</span>
+          </div>
+          <div>
+            <strong>{dueLeads.length}</strong>
+            <span>需要跟进</span>
+          </div>
+          <div>
+            <strong>${totalPipelineValue}</strong>
+            <span>潜在金额</span>
+          </div>
+        </div>
+
         <div className="lead-table">
-          {sampleLeads.map((lead) => (
-            <div className="lead-row" key={lead.name}>
-              <span>{lead.name}</span>
-              <span>{lead.stage}</span>
-              <span>${lead.value}</span>
-              <span>{lead.days} 天</span>
-              <button onClick={() => {
-                setLeadName(lead.name.split(" ")[0]);
-                setStage(lead.stage);
-                setDays(lead.days);
-                setService(lead.need);
-              }}>
-                套用
-              </button>
+          <div className="lead-row table-head">
+            <span>客户</span>
+            <span>阶段</span>
+            <span>金额</span>
+            <span>未联系</span>
+            <span>操作</span>
+          </div>
+          {leads.map((lead) => (
+            <div className="lead-row" key={lead.id}>
+              <input value={lead.name} onChange={(event) => updateLead(lead.id, { name: event.target.value })} />
+              <select value={lead.stage} onChange={(event) => updateLead(lead.id, { stage: event.target.value })}>
+                {leadStages.map((item) => <option key={item}>{item}</option>)}
+              </select>
+              <input type="number" min="0" value={lead.value} onChange={(event) => updateLead(lead.id, { value: Number(event.target.value) })} />
+              <input type="number" min="0" value={lead.days} onChange={(event) => updateLead(lead.id, { days: Number(event.target.value) })} />
+              <div className="row-actions">
+                <button onClick={() => applyLead(lead)}>生成</button>
+                <button className="ghost-danger" title="Delete lead" onClick={() => deleteLead(lead.id)}>
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
           ))}
+        </div>
+
+        <div className="task-panel">
+          <div className="section-heading">
+            <p className="eyebrow">Next Actions</p>
+            <h2>今天该跟进谁</h2>
+          </div>
+          <div className="task-list">
+            {dueLeads.map((lead) => (
+              <button key={lead.id} onClick={() => applyLead(lead)}>
+                <strong>{lead.name}</strong>
+                <span>{lead.stage} · {lead.days} 天未联系 · {lead.need}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -428,13 +569,21 @@ function App() {
 }
 
 function OutputCard({ icon, title, text }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await copyText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1400);
+  }
+
   return (
     <article className="output-card">
       <header>
         <span>{icon}</span>
         <strong>{title}</strong>
-        <button className="copy-button" title="Copy text" onClick={() => copyText(text)}>
-          <Copy size={16} />
+        <button className="copy-button" title="Copy text" onClick={handleCopy}>
+          {copied ? <Check size={16} /> : <Copy size={16} />}
         </button>
       </header>
       <pre>{text}</pre>

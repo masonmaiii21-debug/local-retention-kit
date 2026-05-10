@@ -21,12 +21,17 @@ body[data-shot="generator"] .launch,
 body[data-shot="offer"] .hero,
 body[data-shot="offer"] .workspace,
 body[data-shot="offer"] .pipeline,
-body[data-shot="offer"] .launch {
+body[data-shot="offer"] .launch,
+body[data-shot="crm"] .hero,
+body[data-shot="crm"] .workspace,
+body[data-shot="crm"] .offer-section,
+body[data-shot="crm"] .launch {
   display: none;
 }
 
 body[data-shot="generator"] .workspace,
-body[data-shot="offer"] .offer-section {
+body[data-shot="offer"] .offer-section,
+body[data-shot="crm"] .pipeline {
   margin-top: 36px;
 }
 
@@ -448,6 +453,62 @@ pre {
   margin-bottom: 18px;
 }
 
+.split-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.table-actions button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid #d8d1c5;
+  border-radius: 8px;
+  background: #fff;
+  color: #21302d;
+  font-weight: 800;
+}
+
+.dashboard-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.dashboard-strip div {
+  padding: 16px;
+  background: #edf2df;
+  border-radius: 8px;
+}
+
+.dashboard-strip strong,
+.dashboard-strip span {
+  display: block;
+}
+
+.dashboard-strip strong {
+  font-size: 24px;
+}
+
+.dashboard-strip span {
+  margin-top: 3px;
+  color: #64706b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .lead-table {
   display: grid;
   gap: 8px;
@@ -455,7 +516,7 @@ pre {
 
 .lead-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 0.7fr 0.7fr 80px;
+  grid-template-columns: minmax(160px, 1.2fr) minmax(120px, 1fr) 100px 100px 132px;
   gap: 10px;
   min-height: 52px;
   padding: 10px 12px;
@@ -463,17 +524,80 @@ pre {
   border-radius: 8px;
 }
 
+.lead-row.table-head {
+  min-height: auto;
+  padding: 0 12px 3px;
+  background: transparent;
+  color: #66756f;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .lead-row span {
   color: #3f4b47;
 }
 
-.lead-row button {
+.lead-row input,
+.lead-row select {
+  min-height: 36px;
+  padding: 6px 8px;
+  background: #fffdf8;
+}
+
+.row-actions {
+  display: grid;
+  grid-template-columns: 1fr 38px;
+  gap: 8px;
+}
+
+.row-actions button {
   min-height: 34px;
   border: 0;
   border-radius: 8px;
   background: #21302d;
   color: #fff;
   font-weight: 800;
+}
+
+.row-actions .ghost-danger {
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #7b2d27;
+  border: 1px solid #e4d6d2;
+}
+
+.task-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e2ddd2;
+}
+
+.task-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.task-list button {
+  min-height: 96px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.task-list strong,
+.task-list span {
+  display: block;
+}
+
+.task-list span {
+  margin-top: 8px;
+  color: #4b5853;
+  line-height: 1.45;
 }
 
 .launch-grid {
@@ -585,12 +709,27 @@ pre {
   .form-grid,
   .output-grid,
   .offer-grid,
+  .dashboard-strip,
+  .task-list,
   .launch-grid {
     grid-template-columns: 1fr;
   }
 
   .lead-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  .lead-row.table-head {
+    display: none;
+  }
+
+  .split-heading {
+    display: block;
+  }
+
+  .table-actions {
+    justify-content: flex-start;
+    margin-top: 14px;
   }
 }
 
