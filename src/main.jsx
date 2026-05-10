@@ -55,6 +55,7 @@ const niches = {
 
 const leadStages = ["新咨询", "已报价", "未回复", "已预约", "需复购"];
 const tones = ["专业", "温暖", "简短", "挽回"];
+const aiEndpoint = import.meta.env.VITE_AI_ENDPOINT || "";
 const sampleOrdersCsv = `customer_name,email,phone,order_date,amount,service
 Mia Chen,mia@example.com,555-0101,2026-04-24,85,dog bath + trim
 Lucas Brown,lucas@example.com,555-0102,2026-04-21,140,two-dog grooming
@@ -508,6 +509,9 @@ function App() {
   const [syncStatus, setSyncStatus] = useState("");
   const [importStatus, setImportStatus] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("");
+  const [aiStatus, setAiStatus] = useState("");
+  const [aiReviewReply, setAiReviewReply] = useState("");
+  const [isGeneratingReview, setIsGeneratingReview] = useState(false);
   const [niche, setNiche] = useState("pet");
   const [businessName, setBusinessName] = useState(niches.pet.business);
   const [rebookDays, setRebookDays] = useState(28);
@@ -541,6 +545,7 @@ function App() {
     () => buildReviewReply({ businessName, rating, review, tone }),
     [businessName, rating, review, tone]
   );
+  const finalReviewReply = aiReviewReply || reviewReply;
   const rebook = useMemo(
     () => buildRebook({ businessName, leadName, service, tone }),
     [businessName, leadName, service, tone]
@@ -571,6 +576,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem("local-retention-kit-intakes", JSON.stringify(intakes));
   }, [intakes]);
+
+  useEffect(() => {
+    setAiReviewReply("");
+    setAiStatus("");
+  }, [businessName, rating, review, tone, niche]);
 
   useEffect(() => {
     if (!hasSupabaseConfig) return undefined;
@@ -748,6 +758,50 @@ function App() {
     });
     applyLead(imported[0]);
     setImportStatus(`已导入 ${imported.length} 个客户，并按最近消费自动标记跟进阶段。`);
+  }
+
+  async function generateAiReviewReply() {
+    if (!aiEndpoint) {
+      setAiStatus("AI endpoint 还没配置，当前使用本地模板。部署后客户可直接使用 AI 回复。");
+      setAiReviewReply("");
+      return;
+    }
+
+    if (!review.trim()) {
+      setAiStatus("请输入一条真实评论，再生成 AI 回复。");
+      return;
+    }
+
+    setIsGeneratingReview(true);
+    setAiStatus("正在生成更自然的评论回复...");
+
+    try {
+      const response = await fetch(aiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "review_reply",
+          businessName,
+          niche: active.label,
+          rating,
+          review,
+          tone,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "AI 生成失败");
+      }
+
+      setAiReviewReply(String(data.text || "").trim());
+      setAiStatus("已生成 AI 评论回复。你可以继续改评论内容来重新生成。");
+    } catch (error) {
+      setAiReviewReply("");
+      setAiStatus(`AI 暂时不可用，已保留本地模板：${error.message}`);
+    } finally {
+      setIsGeneratingReview(false);
+    }
   }
 
   function saveClientIntake() {
@@ -946,6 +1000,8 @@ function App() {
               setStage("已报价");
               setDays(3);
               setReview("The team was friendly and my dog looked great.");
+              setAiReviewReply("");
+              setAiStatus("");
             }}>
               <RefreshCcw size={18} />
             </button>
@@ -1018,7 +1074,14 @@ function App() {
               <textarea value={review} onChange={(event) => setReview(event.target.value)} />
             </label>
           </div>
-          <OutputCard icon={<Mail size={18} />} title="商家回复" text={reviewReply} />
+          <div className="ai-actions">
+            <button onClick={generateAiReviewReply} disabled={isGeneratingReview}>
+              <Sparkles size={16} />
+              {isGeneratingReview ? "生成中" : "AI 生成评论回复"}
+            </button>
+            {aiStatus && <span>{aiStatus}</span>}
+          </div>
+          <OutputCard icon={<Mail size={18} />} title={aiReviewReply ? "AI 商家回复" : "商家回复"} text={finalReviewReply} />
         </section>
       </section>
 

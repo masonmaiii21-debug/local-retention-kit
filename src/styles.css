@@ -461,6 +461,39 @@ textarea {
   border-color: #c8e94b;
 }
 
+.ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.ai-actions button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 8px;
+  background: #21302d;
+  color: #fff;
+  font-weight: 900;
+}
+
+.ai-actions button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.ai-actions span {
+  color: #587064;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .output-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
