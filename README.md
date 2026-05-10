@@ -22,6 +22,7 @@
 - 导入订单 CSV，按客户合并订单并自动标记复购/跟进状态
 - 可编辑商家名称、复购周期和客户服务项目
 - 首页 CTA 可点击跳转到生成器、报价和 15 天路线
+- 免费样例包生成器：给潜在客户生成评论回复、复购提醒、未成交跟进 3 条样例
 - 一键套用客户生成文案
 - 导出客户 CSV
 - 15 天启动路线
@@ -46,6 +47,7 @@ Supabase 配置步骤见 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)。
 第一批潜在客户名单见 [sales/prospect-list-template.csv](sales/prospect-list-template.csv)，前 5 条私信草稿见 [sales/first-5-message-drafts.md](sales/first-5-message-drafts.md)。
 已创建的 Gmail 草稿记录见 [sales/gmail-drafts-created.md](sales/gmail-drafts-created.md)。
 Instagram 账号核对见 [sales/instagram-accounts.md](sales/instagram-accounts.md)，DM 草稿见 [sales/instagram-dm-drafts.md](sales/instagram-dm-drafts.md)。
+Instagram 已发送/待发送记录见 [sales/instagram-dms-sent.md](sales/instagram-dms-sent.md)。
 
 ## 变现包装
 

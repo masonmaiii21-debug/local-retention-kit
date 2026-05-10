@@ -122,6 +122,20 @@ function buildRebook({ businessName, leadName, service, tone }) {
   return `Hi ${leadName}, ${business} here. ${warm} Would you like me to reserve a spot for your next ${service}? I can send two available times.`;
 }
 
+function buildSamplePack({ prospectName, observation, service, tone }) {
+  const business = prospectName.trim() || "your shop";
+  const detail = observation.trim() || "your reviews and repeat-service flow look like a strong fit";
+  const offer = service.trim() || "grooming appointment";
+  const warmer = tone === "温暖" ? "Hope you are having a good week." : "Quick idea.";
+
+  return {
+    review: `Thanks so much for trusting ${business}. We are glad your visit went smoothly and appreciate you taking the time to leave a review. We hope to see you again for the next ${offer}.`,
+    rebook: `Hi, ${business} here. ${warmer} It may be a good time to schedule your next ${offer}. Would you like me to send two easy appointment options for this week or next?`,
+    inquiry: `Hi, thanks for reaching out to ${business}. I wanted to follow up in case your ${offer} question got buried. If timing or pricing is the main thing, I can help you pick the easiest next step.`,
+    opener: `I noticed ${detail}. I made 3 quick examples below so you can see the tone before committing to anything.`,
+  };
+}
+
 async function copyText(text) {
   await navigator.clipboard?.writeText(text);
 }
@@ -313,6 +327,9 @@ function App() {
   const [tone, setTone] = useState("温暖");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("The team was friendly and my dog looked great.");
+  const [prospectName, setProspectName] = useState("Austin Pet Stylist");
+  const [prospectObservation, setProspectObservation] = useState("appointment-based small dog grooming with a personal owner-led tone");
+  const [sampleService, setSampleService] = useState("small dog grooming appointment");
 
   const active = niches[niche];
   const followUp = useMemo(
@@ -326,6 +343,10 @@ function App() {
   const rebook = useMemo(
     () => buildRebook({ businessName, leadName, service, tone }),
     [businessName, leadName, service, tone]
+  );
+  const samplePack = useMemo(
+    () => buildSamplePack({ prospectName, observation: prospectObservation, service: sampleService, tone }),
+    [prospectName, prospectObservation, sampleService, tone]
   );
 
   useEffect(() => {
@@ -553,6 +574,9 @@ function App() {
               <a className="secondary" href="#offer">
                 看报价
               </a>
+              <a className="secondary" href="#sample-pack">
+                生成免费样例
+              </a>
             </div>
           </div>
 
@@ -729,6 +753,41 @@ function App() {
           </div>
           <OutputCard icon={<Mail size={18} />} title="商家回复" text={reviewReply} />
         </section>
+      </section>
+
+      <section className="sample-section" id="sample-pack">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="eyebrow">Free Sample Pack</p>
+            <h2>给潜在客户看的 3 条免费样例</h2>
+          </div>
+          <p className="section-note">
+            商家回复“可以看看”时，输入店名和观察点，复制这 3 条作为免费样例。
+          </p>
+        </div>
+
+        <div className="sample-builder">
+          <div className="form-grid">
+            <label>
+              商家名
+              <input value={prospectName} onChange={(event) => setProspectName(event.target.value)} />
+            </label>
+            <label>
+              服务项目
+              <input value={sampleService} onChange={(event) => setSampleService(event.target.value)} />
+            </label>
+            <label>
+              具体观察
+              <input value={prospectObservation} onChange={(event) => setProspectObservation(event.target.value)} />
+            </label>
+          </div>
+          <OutputCard icon={<Sparkles size={18} />} title="发样例前的开场句" text={samplePack.opener} />
+          <div className="output-grid">
+            <OutputCard icon={<Star size={18} />} title="评论回复样例" text={samplePack.review} />
+            <OutputCard icon={<RefreshCcw size={18} />} title="复购提醒样例" text={samplePack.rebook} />
+            <OutputCard icon={<MessageSquareText size={18} />} title="未成交跟进样例" text={samplePack.inquiry} />
+          </div>
+        </div>
       </section>
 
       <section className="pipeline" id="crm">
