@@ -23,6 +23,8 @@
 - 可编辑商家名称、复购周期和客户服务项目
 - 首页 CTA 可点击跳转到生成器、报价和 15 天路线
 - 免费样例包生成器：给潜在客户生成评论回复、复购提醒、未成交跟进 3 条样例
+- 客户接单表：记录店名、联系人、套餐、目标、现有工具和交付时间
+- 完整交付包生成器：生成 PayPal 备注、确认邮件、交付清单、20 条评论回复、20 条复购提醒、10 条跟进文案和 7 天使用计划
 - 一键套用客户生成文案
 - 导出客户 CSV
 - 15 天启动路线
@@ -50,6 +52,7 @@ Instagram 账号核对见 [sales/instagram-accounts.md](sales/instagram-accounts
 Instagram 已发送/待发送记录见 [sales/instagram-dms-sent.md](sales/instagram-dms-sent.md)。
 PayPal 收款发票模板见 [sales/paypal-invoice-templates.md](sales/paypal-invoice-templates.md)。
 PayPal 发票创建状态见 [sales/paypal-invoice-status.md](sales/paypal-invoice-status.md)。
+完整使用流程图见 [sales/usage-flow.md](sales/usage-flow.md)。
 
 ## 变现包装
 

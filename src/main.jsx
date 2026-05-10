@@ -153,6 +153,14 @@ function buildSamplePack({ prospectName, observation, service, tone }) {
   };
 }
 
+function numberedLines(items) {
+  return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+}
+
+function repeatToCount(items, count) {
+  return Array.from({ length: count }, (_, index) => items[index % items.length]);
+}
+
 function buildDeliveryPack({ clientBusiness, clientContact, clientEmail, clientPackage, clientGoal, clientTools, clientDeadline, clientVoice, niche }) {
   const selectedPackage = servicePackages[clientPackage] || servicePackages.Starter;
   const business = clientBusiness.trim() || "Client business";
@@ -164,6 +172,73 @@ function buildDeliveryPack({ clientBusiness, clientContact, clientEmail, clientP
   const voice = clientVoice.trim() || "friendly, clear, and professional";
   const industry = niches[niche]?.label || "local service";
   const deliverables = selectedPackage.deliverables.map((item) => `- ${item}`).join("\n");
+  const service = niches[niche]?.service || "service appointment";
+  const reviewReplies = repeatToCount([
+    `Thank you for choosing ${business}. We are glad the visit went well and appreciate you taking the time to share your experience.`,
+    `Thanks so much for the kind review. It means a lot to our team at ${business}, and we look forward to helping again next time.`,
+    `We appreciate your feedback and are happy to hear you had a good experience with ${business}. Thank you for supporting a local business.`,
+    `Thank you for trusting ${business}. We are glad we could help and hope to see you again soon.`,
+    `Thanks for sharing this. We appreciate the specific feedback and will keep working to make every visit feel smooth and easy.`,
+  ], 20);
+  const rebookingMessages = repeatToCount([
+    `Hi, ${business} here. It may be a good time to schedule your next ${service}. Would you like me to send two available options?`,
+    `Hi, just checking in from ${business}. We can help reserve your next ${service} if you want to stay on track.`,
+    `Quick reminder from ${business}: if you want the same timing as last visit, I can help find an easy appointment this week or next.`,
+    `Hi, hope you are doing well. We have a few openings coming up for ${service}. Want me to send the easiest times?`,
+    `Hi, ${business} here. If you are ready for the next ${service}, reply with a day that works and I can help book it.`,
+  ], 20);
+  const leadFollowUps = repeatToCount([
+    `Hi, this is ${business}. I wanted to follow up on your ${service} question in case it got buried. Do you still want help choosing the next step?`,
+    `Quick follow-up from ${business}. If timing or price is the main question, I can send the simplest option before you decide.`,
+    `Hi, I wanted to check whether you still need help with ${service}. I can send two easy options if that helps.`,
+    `Thanks again for reaching out to ${business}. Would you like me to hold an appointment option or answer any questions first?`,
+    `Hi, I know things get busy. If you are still considering ${service}, reply here and I can make the next step easy.`,
+  ], 10);
+  const weeklyPlan = [
+    "Day 1: Send the best-fit follow-up to open leads that already asked about service.",
+    "Day 2: Reply to unanswered positive reviews with the review reply templates.",
+    "Day 3: Send rebooking reminders to customers who are due based on the normal service cycle.",
+    "Day 4: Update any messages that sound too formal or too casual for the business.",
+    "Day 5: Track replies in the CRM and mark interested customers as booked or needs follow-up.",
+    "Day 6: Send a second soft follow-up only to people who did not reply.",
+    "Day 7: Review what worked, keep the top messages, and prepare the next batch.",
+  ];
+  const fulfillment = `# ${business} - ${clientPackage} Retention Kit
+
+Prepared for: ${contact}
+Email: ${email}
+Industry: ${industry}
+Tone: ${voice}
+Goal: ${goal}
+Current tools/data: ${tools}
+Delivery timeline: ${deadline}
+
+## How to use this pack
+
+1. Start with customers who already showed intent: recent inquiries, old quotes, and repeat customers.
+2. Send only one message per customer first. Keep replies natural and short.
+3. Track each reply as booked, not interested, needs later follow-up, or no reply.
+4. Reuse the best-performing messages next week.
+
+## Review Reply Templates
+
+${numberedLines(reviewReplies)}
+
+## Rebooking Reminder Messages
+
+${numberedLines(rebookingMessages)}
+
+## Lead Follow-up Messages
+
+${numberedLines(leadFollowUps)}
+
+## 7-Day Use Plan
+
+${numberedLines(weeklyPlan)}
+
+## Simple Tracking Columns
+
+Customer name | Last service | Last contact date | Stage | Message used | Reply | Next action | Value`;
 
   return {
     invoice: `Package: ${clientPackage} - $${selectedPackage.price}
@@ -221,6 +296,7 @@ Please reply with any tone changes or examples that should sound more like your 
 
 Best,
 Mason`,
+    fulfillment,
   };
 }
 
@@ -711,6 +787,8 @@ function App() {
       deliveryPack.checklist,
       "\n---\n",
       deliveryPack.deliveryEmail,
+      "\n---\n",
+      deliveryPack.fulfillment,
     ].join("\n");
     downloadTextFile(`${sanitizeFileName(clientBusiness)}-${clientPackage.toLowerCase()}-delivery-pack.txt`, content);
     setDeliveryStatus("交付包已下载，可以作为付款后的第一版交付文档。");
@@ -1091,6 +1169,9 @@ function App() {
           <OutputCard icon={<Mail size={18} />} title="付款后确认邮件" text={deliveryPack.confirmation} />
           <OutputCard icon={<Check size={18} />} title="交付检查清单" text={deliveryPack.checklist} />
           <OutputCard icon={<Send size={18} />} title="第一版交付邮件" text={deliveryPack.deliveryEmail} />
+          <div className="full-output">
+            <OutputCard icon={<Sparkles size={18} />} title="完整交付文案包" text={deliveryPack.fulfillment} />
+          </div>
         </div>
       </section>
 
