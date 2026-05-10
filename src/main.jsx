@@ -67,6 +67,54 @@ const sampleLeads = [
   { id: "lead-3", name: "Emma Davis", stage: "需复购", value: 75, days: 34, need: "monthly grooming" },
 ];
 
+const defaultPageContent = {
+  brand: "Local Retention Kit",
+  heroEyebrow: "15 天可投入的小服务项目",
+  heroTitle: "给本地服务商卖“复购 + 跟进 + 评论回复”自动化包",
+  heroCopy: "先不做重 SaaS。用可演示工具、行业模板和交付文档，包装成一次性部署服务，向宠物美容、美容护理、装修维修这类复购或报价驱动行业收费。",
+  navCta: "生成文案",
+  primaryCta: "试用 MVP",
+  launchCta: "看 15 天计划",
+  offerCta: "看报价",
+  signalLabel: "首选切入",
+  metricPrice: "$99-$299",
+  metricPriceLabel: "首单报价",
+  metricDelivery: "7 天",
+  metricDeliveryLabel: "基础交付",
+  metricLaunch: "15 天",
+  metricLaunchLabel: "可开始投放",
+  offerEyebrow: "Productized Service",
+  offerTitle: "直接拿去卖的服务包",
+  pricing: [
+    {
+      name: "Starter",
+      price: "$99",
+      description: "适合第一个试单，用低风险价格换案例和反馈。",
+      items: "20 条评论回复模板\n20 条复购提醒文案\n10 条未成交跟进文案\n一个客户跟进表格",
+    },
+    {
+      name: "Setup",
+      price: "$199",
+      description: "主推档位，包含按店铺风格定制和一次设置指导。",
+      items: "Starter 全部内容\n按商家语气改写\n30 分钟视频设置指导\n7 天后复盘一次",
+    },
+    {
+      name: "Done-for-you",
+      price: "$299",
+      description: "适合愿意省时间的老板，你直接帮他整理首批真实客户。",
+      items: "Setup 全部内容\n导入最多 50 个客户\n生成首批真实跟进文案\n提供 2 周使用建议",
+    },
+  ],
+  launchEyebrow: "Go-to-market",
+  launchTitle: "15 天启动路线",
+  launchSteps: [
+    { day: "1-3 天", text: "完善 Demo、截图、服务说明页，准备 3 个行业样例。" },
+    { day: "4-6 天", text: "整理 60 个潜在客户名单：Google Maps、Instagram、本地商会目录。" },
+    { day: "7-10 天", text: "每天发 15 条定制私信，附一段免费评论回复或跟进文案。" },
+    { day: "11-15 天", text: "以 $99-$299 接首单，交付模板、设置教程和 7 天文案包。" },
+  ],
+};
+
 function buildFollowUp({ businessName, leadName, stage, days, channel, service, objection, tone }) {
   const business = businessName.trim() || "Your business";
   const softer = tone === "温暖" ? "Hope you and your family are doing well." : "Quick follow-up.";
@@ -132,6 +180,22 @@ function loadLeads() {
     return stored ? JSON.parse(stored) : sampleLeads;
   } catch {
     return sampleLeads;
+  }
+}
+
+function loadPageContent() {
+  try {
+    const stored = localStorage.getItem("local-retention-kit-page-content");
+    if (!stored) return defaultPageContent;
+    const parsed = JSON.parse(stored);
+    return {
+      ...defaultPageContent,
+      ...parsed,
+      pricing: parsed.pricing?.length === 3 ? parsed.pricing : defaultPageContent.pricing,
+      launchSteps: parsed.launchSteps?.length === 4 ? parsed.launchSteps : defaultPageContent.launchSteps,
+    };
+  } catch {
+    return defaultPageContent;
   }
 }
 
@@ -296,6 +360,7 @@ function leadToDb(lead, userId) {
 
 function App() {
   const [leads, setLeads] = useState(loadLeads);
+  const [pageContent, setPageContent] = useState(loadPageContent);
   const [selectedLeadId, setSelectedLeadId] = useState("lead-1");
   const [session, setSession] = useState(null);
   const [authEmail, setAuthEmail] = useState("");
@@ -331,6 +396,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("local-retention-kit-leads", JSON.stringify(leads));
   }, [leads]);
+
+  useEffect(() => {
+    localStorage.setItem("local-retention-kit-page-content", JSON.stringify(pageContent));
+  }, [pageContent]);
 
   useEffect(() => {
     if (!hasSupabaseConfig) return undefined;
@@ -373,6 +442,28 @@ function App() {
     setService(niches[next].service);
     setChannel(niches[next].channels[0]);
     setObjection(niches[next].objection);
+  }
+
+  function updatePageContent(patch) {
+    setPageContent((current) => ({ ...current, ...patch }));
+  }
+
+  function updatePricing(index, patch) {
+    setPageContent((current) => ({
+      ...current,
+      pricing: current.pricing.map((plan, planIndex) => planIndex === index ? { ...plan, ...patch } : plan),
+    }));
+  }
+
+  function updateLaunchStep(index, patch) {
+    setPageContent((current) => ({
+      ...current,
+      launchSteps: current.launchSteps.map((step, stepIndex) => stepIndex === index ? { ...step, ...patch } : step),
+    }));
+  }
+
+  function resetPageContent() {
+    setPageContent(defaultPageContent);
   }
 
   async function loadCloudLeads() {
@@ -527,53 +618,91 @@ function App() {
         <nav className="topbar">
           <div className="brand">
             <span className="brand-mark"><Sparkles size={18} /></span>
-            <span>Local Retention Kit</span>
+            <input
+              className="brand-input"
+              value={pageContent.brand}
+              onChange={(event) => updatePageContent({ brand: event.target.value })}
+              aria-label="Brand name"
+            />
           </div>
           <a className="nav-action" href="#generator">
             <Send size={16} />
-            生成文案
+            <input
+              value={pageContent.navCta}
+              onChange={(event) => updatePageContent({ navCta: event.target.value })}
+              aria-label="Navigation CTA"
+            />
           </a>
         </nav>
 
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">15 天可投入的小服务项目</p>
-            <h1>给本地服务商卖“复购 + 跟进 + 评论回复”自动化包</h1>
-            <p>
-              先不做重 SaaS。用可演示工具、行业模板和交付文档，包装成一次性部署服务，
-              向宠物美容、美容护理、装修维修这类复购或报价驱动行业收费。
-            </p>
+            <input
+              className="hero-eyebrow-input"
+              value={pageContent.heroEyebrow}
+              onChange={(event) => updatePageContent({ heroEyebrow: event.target.value })}
+              aria-label="Hero eyebrow"
+            />
+            <textarea
+              className="hero-title-input"
+              value={pageContent.heroTitle}
+              onChange={(event) => updatePageContent({ heroTitle: event.target.value })}
+              aria-label="Hero title"
+            />
+            <textarea
+              className="hero-copy-input"
+              value={pageContent.heroCopy}
+              onChange={(event) => updatePageContent({ heroCopy: event.target.value })}
+              aria-label="Hero description"
+            />
             <div className="hero-actions">
               <a className="primary" href="#generator">
-                试用 MVP <ArrowRight size={18} />
+                <input
+                  value={pageContent.primaryCta}
+                  onChange={(event) => updatePageContent({ primaryCta: event.target.value })}
+                  aria-label="Primary CTA"
+                />
+                <ArrowRight size={18} />
               </a>
               <a className="secondary" href="#launch">
-                看 15 天计划
+                <input
+                  value={pageContent.launchCta}
+                  onChange={(event) => updatePageContent({ launchCta: event.target.value })}
+                  aria-label="Launch CTA"
+                />
               </a>
               <a className="secondary" href="#offer">
-                看报价
+                <input
+                  value={pageContent.offerCta}
+                  onChange={(event) => updatePageContent({ offerCta: event.target.value })}
+                  aria-label="Offer CTA"
+                />
               </a>
             </div>
           </div>
 
           <div className="signal-panel" aria-label="project signal">
             <div className="panel-header">
-              <span>首选切入</span>
+              <input
+                value={pageContent.signalLabel}
+                onChange={(event) => updatePageContent({ signalLabel: event.target.value })}
+                aria-label="Signal label"
+              />
               <strong>{active.label}</strong>
             </div>
             <p>{active.pain}</p>
             <div className="metric-row">
               <div>
-                <strong>$99-$299</strong>
-                <span>首单报价</span>
+                <input value={pageContent.metricPrice} onChange={(event) => updatePageContent({ metricPrice: event.target.value })} aria-label="Price metric" />
+                <input value={pageContent.metricPriceLabel} onChange={(event) => updatePageContent({ metricPriceLabel: event.target.value })} aria-label="Price metric label" />
               </div>
               <div>
-                <strong>7 天</strong>
-                <span>基础交付</span>
+                <input value={pageContent.metricDelivery} onChange={(event) => updatePageContent({ metricDelivery: event.target.value })} aria-label="Delivery metric" />
+                <input value={pageContent.metricDeliveryLabel} onChange={(event) => updatePageContent({ metricDeliveryLabel: event.target.value })} aria-label="Delivery metric label" />
               </div>
               <div>
-                <strong>15 天</strong>
-                <span>可开始投放</span>
+                <input value={pageContent.metricLaunch} onChange={(event) => updatePageContent({ metricLaunch: event.target.value })} aria-label="Launch metric" />
+                <input value={pageContent.metricLaunchLabel} onChange={(event) => updatePageContent({ metricLaunchLabel: event.target.value })} aria-label="Launch metric label" />
               </div>
             </div>
           </div>
@@ -616,6 +745,7 @@ function App() {
                 onChange={(event) => setRebookDays(Number(event.target.value))}
               />
             </label>
+            <button className="reset-content-button" onClick={resetPageContent}>重置页面文案</button>
           </div>
 
           <div className="cloud-box">
@@ -841,70 +971,54 @@ function App() {
 
       <section className="offer-section" id="offer">
         <div className="section-heading">
-          <p className="eyebrow">Productized Service</p>
-          <h2>直接拿去卖的服务包</h2>
+          <input
+            className="section-eyebrow-input"
+            value={pageContent.offerEyebrow}
+            onChange={(event) => updatePageContent({ offerEyebrow: event.target.value })}
+            aria-label="Offer eyebrow"
+          />
+          <input
+            className="section-title-input"
+            value={pageContent.offerTitle}
+            onChange={(event) => updatePageContent({ offerTitle: event.target.value })}
+            aria-label="Offer title"
+          />
         </div>
         <div className="offer-grid">
-          <article className="pricing-card">
-            <div className="price-top">
-              <PackageCheck size={22} />
-              <strong>Starter</strong>
-            </div>
-            <h3>$99</h3>
-            <p>适合第一个试单，用低风险价格换案例和反馈。</p>
-            <ul>
-              <li>20 条评论回复模板</li>
-              <li>20 条复购提醒文案</li>
-              <li>10 条未成交跟进文案</li>
-              <li>一个客户跟进表格</li>
-            </ul>
-          </article>
-          <article className="pricing-card featured">
-            <div className="price-top">
-              <PackageCheck size={22} />
-              <strong>Setup</strong>
-            </div>
-            <h3>$199</h3>
-            <p>主推档位，包含按店铺风格定制和一次设置指导。</p>
-            <ul>
-              <li>Starter 全部内容</li>
-              <li>按商家语气改写</li>
-              <li>30 分钟视频设置指导</li>
-              <li>7 天后复盘一次</li>
-            </ul>
-          </article>
-          <article className="pricing-card">
-            <div className="price-top">
-              <PackageCheck size={22} />
-              <strong>Done-for-you</strong>
-            </div>
-            <h3>$299</h3>
-            <p>适合愿意省时间的老板，你直接帮他整理首批真实客户。</p>
-            <ul>
-              <li>Setup 全部内容</li>
-              <li>导入最多 50 个客户</li>
-              <li>生成首批真实跟进文案</li>
-              <li>提供 2 周使用建议</li>
-            </ul>
-          </article>
+          {pageContent.pricing.map((plan, index) => (
+            <article className={`pricing-card ${index === 1 ? "featured" : ""}`} key={index}>
+              <div className="price-top">
+                <PackageCheck size={22} />
+                <input value={plan.name} onChange={(event) => updatePricing(index, { name: event.target.value })} aria-label={`Plan ${index + 1} name`} />
+              </div>
+              <input className="price-input" value={plan.price} onChange={(event) => updatePricing(index, { price: event.target.value })} aria-label={`Plan ${index + 1} price`} />
+              <textarea value={plan.description} onChange={(event) => updatePricing(index, { description: event.target.value })} aria-label={`Plan ${index + 1} description`} />
+              <textarea className="items-input" value={plan.items} onChange={(event) => updatePricing(index, { items: event.target.value })} aria-label={`Plan ${index + 1} items`} />
+            </article>
+          ))}
         </div>
       </section>
 
       <section className="launch" id="launch">
         <div className="section-heading">
-          <p className="eyebrow">Go-to-market</p>
-          <h2>15 天启动路线</h2>
+          <input
+            className="section-eyebrow-input"
+            value={pageContent.launchEyebrow}
+            onChange={(event) => updatePageContent({ launchEyebrow: event.target.value })}
+            aria-label="Launch eyebrow"
+          />
+          <input
+            className="section-title-input"
+            value={pageContent.launchTitle}
+            onChange={(event) => updatePageContent({ launchTitle: event.target.value })}
+            aria-label="Launch title"
+          />
         </div>
         <div className="launch-grid">
-          {[
-            ["1-3 天", "完善 Demo、截图、服务说明页，准备 3 个行业样例。"],
-            ["4-6 天", "整理 60 个潜在客户名单：Google Maps、Instagram、本地商会目录。"],
-            ["7-10 天", "每天发 15 条定制私信，附一段免费评论回复或跟进文案。"],
-            ["11-15 天", "以 $99-$299 接首单，交付模板、设置教程和 7 天文案包。"],
-          ].map(([day, text]) => (
-            <div className="launch-card" key={day}>
-              <strong>{day}</strong>
-              <p>{text}</p>
+          {pageContent.launchSteps.map((step, index) => (
+            <div className="launch-card" key={index}>
+              <input value={step.day} onChange={(event) => updateLaunchStep(index, { day: event.target.value })} aria-label={`Launch step ${index + 1} day`} />
+              <textarea value={step.text} onChange={(event) => updateLaunchStep(index, { text: event.target.value })} aria-label={`Launch step ${index + 1} text`} />
             </div>
           ))}
         </div>

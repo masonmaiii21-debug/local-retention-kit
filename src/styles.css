@@ -333,6 +333,15 @@ main {
   min-height: 38px;
 }
 
+.reset-content-button {
+  min-height: 38px;
+  border: 1px solid #d8d1c5;
+  border-radius: 8px;
+  background: #f8f5ee;
+  color: #25312e;
+  font-weight: 800;
+}
+
 .cloud-box {
   margin-top: 12px;
   padding: 14px;
@@ -428,6 +437,132 @@ textarea {
 textarea {
   min-height: 88px;
   resize: vertical;
+}
+
+.brand-input,
+.nav-action input,
+.hero-actions input,
+.hero-eyebrow-input,
+.hero-title-input,
+.hero-copy-input,
+.signal-panel input,
+.section-eyebrow-input,
+.section-title-input,
+.pricing-card input,
+.pricing-card textarea,
+.launch-card input,
+.launch-card textarea {
+  border-color: transparent;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+
+.brand-input:focus,
+.nav-action input:focus,
+.hero-actions input:focus,
+.hero-eyebrow-input:focus,
+.hero-title-input:focus,
+.hero-copy-input:focus,
+.signal-panel input:focus,
+.section-eyebrow-input:focus,
+.section-title-input:focus,
+.pricing-card input:focus,
+.pricing-card textarea:focus,
+.launch-card input:focus,
+.launch-card textarea:focus {
+  outline: 2px solid rgba(214, 242, 100, 0.78);
+  outline-offset: 2px;
+  border-color: rgba(214, 242, 100, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.brand-input {
+  width: min(230px, 58vw);
+  min-height: 34px;
+  padding: 4px 6px;
+  font-weight: 800;
+}
+
+.nav-action input,
+.hero-actions input {
+  width: min(190px, 56vw);
+  min-height: 30px;
+  padding: 3px 4px;
+  font-weight: 800;
+  cursor: text;
+}
+
+.hero-eyebrow-input,
+.section-eyebrow-input {
+  min-height: 30px;
+  padding: 3px 5px;
+  color: #66806d;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hero .hero-eyebrow-input {
+  width: min(520px, 100%);
+  color: #d6f264;
+}
+
+.hero-title-input {
+  width: min(760px, 100%);
+  min-height: 158px;
+  margin: 10px 0 18px;
+  padding: 4px 6px;
+  color: #f9faf7;
+  font-size: clamp(40px, 5vw, 68px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0;
+  resize: vertical;
+}
+
+.hero-copy-input {
+  width: min(680px, 100%);
+  min-height: 126px;
+  padding: 4px 6px;
+  color: rgba(249, 250, 247, 0.82);
+  font-size: 18px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.panel-header input {
+  width: min(210px, 100%);
+  min-height: 30px;
+  padding: 2px 4px;
+  color: #66806d;
+  font-weight: 800;
+}
+
+.metric-row input:first-child {
+  min-height: 42px;
+  padding: 2px 4px;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.metric-row input:last-child {
+  min-height: 28px;
+  padding: 2px 4px;
+  color: #66806d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.section-title-input {
+  width: min(780px, 100%);
+  min-height: 62px;
+  padding: 4px 6px;
+  color: #1e2528;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  line-height: 1.08;
 }
 
 .wide {
@@ -758,6 +893,45 @@ pre {
   letter-spacing: 0;
 }
 
+.pricing-card .price-top input {
+  min-height: 34px;
+  padding: 2px 4px;
+  color: inherit;
+  font-weight: 800;
+}
+
+.pricing-card .price-input {
+  min-height: 66px;
+  margin: 12px 0 8px;
+  padding: 2px 4px;
+  color: #1e2528;
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.pricing-card.featured .price-input {
+  color: #f9faf7;
+}
+
+.pricing-card textarea {
+  min-height: 92px;
+  padding: 4px;
+  color: #4b5853;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.pricing-card .items-input {
+  min-height: 138px;
+  color: #33413d;
+  line-height: 1.75;
+}
+
+.pricing-card.featured textarea {
+  color: rgba(249, 250, 247, 0.82);
+}
+
 .pricing-card p {
   margin: 0 0 16px;
   color: #4b5853;
@@ -792,6 +966,21 @@ pre {
   font-size: 20px;
 }
 
+.launch-card input {
+  min-height: 40px;
+  padding: 2px 4px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.launch-card textarea {
+  min-height: 92px;
+  padding: 4px;
+  color: #47544f;
+  line-height: 1.6;
+  resize: vertical;
+}
+
 .launch-card p {
   margin: 0;
   color: #47544f;
@@ -809,6 +998,11 @@ pre {
   }
 
   .hero-copy h1 {
+    font-size: 46px;
+  }
+
+  .hero-title-input {
+    min-height: 116px;
     font-size: 46px;
   }
 
@@ -867,7 +1061,17 @@ pre {
     font-size: 38px;
   }
 
+  .hero-title-input {
+    min-height: 108px;
+    font-size: 38px;
+  }
+
   .hero-copy p {
+    font-size: 16px;
+  }
+
+  .hero-copy-input {
+    min-height: 118px;
     font-size: 16px;
   }
 
