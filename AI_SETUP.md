@@ -24,7 +24,7 @@ supabase secrets set OPENAI_API_KEY=your_server_side_key
 Optional model override:
 
 ```bash
-supabase secrets set OPENAI_MODEL=gpt-5.4-mini
+supabase secrets set OPENAI_MODEL=gpt-4o-mini
 ```
 
 3. Deploy the function:
@@ -44,7 +44,7 @@ After GitHub Pages rebuilds, the public website can call the AI endpoint without
 ## What the AI currently generates
 
 - Natural review replies based on store name, industry, star rating, review text, and selected tone.
-- If the AI endpoint fails, the UI falls back to the local template reply.
+- If OpenAI is temporarily unavailable, the server returns a review-specific fallback reply instead of failing the customer workflow.
 
 ## Why this is customer-safe
 

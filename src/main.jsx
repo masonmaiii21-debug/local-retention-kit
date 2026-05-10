@@ -795,7 +795,11 @@ function App() {
       }
 
       setAiReviewReply(String(data.text || "").trim());
-      setAiStatus("已生成 AI 评论回复。你可以继续改评论内容来重新生成。");
+      setAiStatus(
+        data.source === "fallback"
+          ? "OpenAI 暂时不可用，已生成备用的定制回复。"
+          : "已生成 AI 评论回复。你可以继续改评论内容来重新生成。"
+      );
     } catch (error) {
       setAiReviewReply("");
       setAiStatus(`AI 暂时不可用，已保留本地模板：${error.message}`);
