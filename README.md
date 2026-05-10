@@ -48,6 +48,8 @@ Supabase 配置步骤见 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)。
 已创建的 Gmail 草稿记录见 [sales/gmail-drafts-created.md](sales/gmail-drafts-created.md)。
 Instagram 账号核对见 [sales/instagram-accounts.md](sales/instagram-accounts.md)，DM 草稿见 [sales/instagram-dm-drafts.md](sales/instagram-dm-drafts.md)。
 Instagram 已发送/待发送记录见 [sales/instagram-dms-sent.md](sales/instagram-dms-sent.md)。
+PayPal 收款发票模板见 [sales/paypal-invoice-templates.md](sales/paypal-invoice-templates.md)。
+PayPal 发票创建状态见 [sales/paypal-invoice-status.md](sales/paypal-invoice-status.md)。
 
 ## 变现包装
 
