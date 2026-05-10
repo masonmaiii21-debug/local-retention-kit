@@ -21,7 +21,7 @@
 - Supabase 配置存在时支持登录和云端保存
 - 导入订单 CSV，按客户合并订单并自动标记复购/跟进状态
 - 可编辑商家名称、复购周期和客户服务项目
-- 可编辑首页文案、CTA、报价卡和 15 天交付路线
+- 首页 CTA 可点击跳转到生成器、报价和 15 天路线
 - 一键套用客户生成文案
 - 导出客户 CSV
 - 15 天启动路线
@@ -41,7 +41,8 @@ Supabase 配置步骤见 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)。
 
 ## 客户交付
 
-成交后的页面改名、订单导入、首批文案生成和交付清单见 [sales/client-handoff.md](sales/client-handoff.md)。
+成交后的演示流程、订单导入、首批文案生成和交付清单见 [sales/client-handoff.md](sales/client-handoff.md)。
+开始找第一个客户的执行清单见 [sales/day-1-outreach-plan.md](sales/day-1-outreach-plan.md)。
 
 ## 变现包装
 

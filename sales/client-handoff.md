@@ -2,17 +2,15 @@
 
 Use this checklist after a merchant pays for the Starter, Setup, or Done-for-you package.
 
-## 1. Customize the demo page
+## 1. Demo the live page
 
-Open the live site and edit the text directly on the page.
+Open the live site and walk the merchant through the clickable flow.
 
-- Brand name: change it to the merchant name or campaign name.
-- Hero title and intro: describe the merchant's actual service, such as pet grooming, med spa treatments, or home repair quotes.
-- CTA labels: keep them short and action focused.
-- Price cards: rename the packages if the merchant wants different service tiers.
-- 15-day launch route: adjust the dates and tasks to match the merchant's workflow.
-
-Click `重置页面文案` only if you want to return the page copy to the default sales version.
+- Click `生成文案` or `试用 MVP` to jump to the generator.
+- Click `看报价` to explain the $99, $199, and $299 package options.
+- Click `看 15 天计划` to show how quickly this can be launched.
+- Click a vertical niche so the merchant sees the promise and channels change.
+- Click sample leads in `今天该跟进谁` to show that customer data can drive messages.
 
 ## 2. Set merchant basics
 
