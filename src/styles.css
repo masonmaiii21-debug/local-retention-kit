@@ -16,6 +16,7 @@ body {
 
 body[data-shot="generator"] .hero,
 body[data-shot="generator"] .client-demo,
+body[data-shot="generator"] .free-sample-landing,
 body[data-shot="generator"] .pipeline,
 body[data-shot="generator"] .sample-section,
 body[data-shot="generator"] .intake-section,
@@ -23,6 +24,7 @@ body[data-shot="generator"] .offer-section,
 body[data-shot="generator"] .launch,
 body[data-shot="offer"] .hero,
 body[data-shot="offer"] .client-demo,
+body[data-shot="offer"] .free-sample-landing,
 body[data-shot="offer"] .workspace,
 body[data-shot="offer"] .pipeline,
 body[data-shot="offer"] .sample-section,
@@ -30,6 +32,7 @@ body[data-shot="offer"] .intake-section,
 body[data-shot="offer"] .launch,
 body[data-shot="crm"] .hero,
 body[data-shot="crm"] .client-demo,
+body[data-shot="crm"] .free-sample-landing,
 body[data-shot="crm"] .workspace,
 body[data-shot="crm"] .offer-section,
 body[data-shot="crm"] .sample-section,
@@ -369,6 +372,107 @@ main {
   font-size: 44px;
   line-height: 1;
   letter-spacing: 0;
+}
+
+.free-sample-landing {
+  width: min(1180px, calc(100% - 32px));
+  margin: 18px auto;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e2ddd2;
+  background: #fffdf8;
+}
+
+.free-sample-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.free-sample-hero h2 {
+  max-width: 760px;
+  margin: 6px 0 12px;
+  font-size: 36px;
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.free-sample-hero p {
+  max-width: 780px;
+  margin: 0;
+  color: #4b5853;
+  line-height: 1.7;
+}
+
+.sample-offer-box {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #edf2df;
+}
+
+.sample-offer-box span,
+.sample-preview-card span {
+  color: #66806d;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sample-offer-box strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.sample-offer-box small {
+  color: #4b5853;
+  line-height: 1.45;
+}
+
+.sample-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sample-preview-card {
+  padding: 16px;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+  background: #f8f5ee;
+}
+
+.sample-preview-card p {
+  margin: 5px 0 12px;
+  color: #4b5853;
+  line-height: 1.45;
+}
+
+.sample-preview-card ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sample-preview-card li {
+  padding-top: 9px;
+  border-top: 1px solid #e2ddd2;
+  color: #33413d;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.sample-preview-card li strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #21302d;
+  font-size: 12px;
+  text-transform: uppercase;
 }
 
 .workspace {
@@ -1156,7 +1260,8 @@ pre {
 @media (max-width: 900px) {
   .hero-grid,
   .workspace,
-  .client-demo-grid {
+  .client-demo-grid,
+  .free-sample-hero {
     grid-template-columns: 1fr;
   }
 
@@ -1181,6 +1286,7 @@ pre {
   .offer-grid,
   .pitch-points,
   .roi-inputs,
+  .sample-preview-grid,
   .intake-grid,
   .delivery-output-grid,
   .import-panel,
@@ -1233,6 +1339,10 @@ pre {
 
   .client-pitch h3 {
     font-size: 28px;
+  }
+
+  .free-sample-hero h2 {
+    font-size: 30px;
   }
 
   .hero-copy p {

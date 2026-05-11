@@ -850,6 +850,29 @@ function App() {
   const activePackage = servicePackages[clientPackage] || servicePackages.Starter;
   const monthlyRecovered = Math.round(Number(missedRebookings || 0) * Number(averageTicket || 0) * (Number(recoveryRate || 0) / 100));
   const annualRecovered = monthlyRecovered * 12;
+  const sampleLandingPacks = [
+    {
+      name: "Austin Pet Stylist",
+      fit: "solo grooming studio with maintenance bath appointments",
+      review: "Thank you for trusting Austin Pet Stylist. We are glad your pup looked and felt great after the visit, and we appreciate you taking the time to share it.",
+      rebook: "Hi, Austin Pet Stylist here. If your pup is ready for a maintenance bath between haircuts, I can send a couple of easy appointment options for this week or next.",
+      inquiry: "Hi, just checking in from Austin Pet Stylist. If you still need help choosing the right grooming option, reply here and I can make the next step simple.",
+    },
+    {
+      name: "BarkSuds Austin",
+      fit: "appointment-focused grooming salon with repeat visit potential",
+      review: "Thanks for choosing BarkSuds Austin. We are happy the grooming visit went smoothly and appreciate you sharing your experience with other local pet owners.",
+      rebook: "Hi, BarkSuds Austin here. It may be a good time to reserve your next grooming visit. Want me to send two appointment options that are easy to book?",
+      inquiry: "Hi, thanks again for checking out BarkSuds Austin. If you were looking at appointments and got busy, I can help you pick the easiest time to come in.",
+    },
+    {
+      name: "Soco Pet Lounge",
+      fit: "daycare, boarding, and grooming with multiple repeat-service moments",
+      review: "Thank you for visiting Soco Pet Lounge. We appreciate you trusting us with your pet and are glad the experience was smooth from drop-off to pickup.",
+      rebook: "Hi, Soco Pet Lounge here. If you need grooming, daycare, or boarding again soon, I can send the easiest available options for your schedule.",
+      inquiry: "Hi, just following up from Soco Pet Lounge. If you still have questions about grooming, daycare, or boarding, reply here and we can help with the next step.",
+    },
+  ];
 
   return (
     <main>
@@ -886,8 +909,8 @@ function App() {
               <a className="secondary" href="#client-demo">
                 客户展示页
               </a>
-              <a className="secondary" href="#sample-pack">
-                生成免费样例
+              <a className="secondary" href="#free-sample">
+                免费样例页
               </a>
               <a className="secondary" href="#intake">
                 接单交付
@@ -944,7 +967,7 @@ function App() {
               <span><Check size={16} /> Works with your existing email, text, or DM workflow</span>
             </div>
             <div className="client-actions">
-              <a className="primary" href="#sample-pack">See free samples</a>
+              <a className="primary" href="#free-sample">See free samples</a>
               <a className="secondary dark" href="#intake">Start a setup</a>
             </div>
           </article>
@@ -993,6 +1016,41 @@ function App() {
               <small>${annualRecovered}/yr if the same pattern holds</small>
             </div>
           </aside>
+        </div>
+      </section>
+
+      <section className="free-sample-landing" id="free-sample">
+        <div className="free-sample-hero">
+          <div>
+            <p className="eyebrow">Free Custom Sample</p>
+            <h2>Get 3 ready-to-send customer messages for your pet business.</h2>
+            <p>
+              I will make one review reply, one rebooking reminder, and one follow-up message based on your shop's services and tone.
+              No new software required. You can use the messages in email, text, Instagram, or your booking workflow.
+            </p>
+          </div>
+          <div className="sample-offer-box">
+            <span>What you receive</span>
+            <strong>3 custom examples</strong>
+            <small>Usually delivered as a quick reply before any paid setup.</small>
+            <a className="primary" href="#sample-pack">Build a sample now</a>
+          </div>
+        </div>
+
+        <div className="sample-preview-grid">
+          {sampleLandingPacks.map((pack) => (
+            <article className="sample-preview-card" key={pack.name}>
+              <div>
+                <span>{pack.name}</span>
+                <p>{pack.fit}</p>
+              </div>
+              <ul>
+                <li><strong>Review reply</strong>{pack.review}</li>
+                <li><strong>Rebooking reminder</strong>{pack.rebook}</li>
+                <li><strong>Lead follow-up</strong>{pack.inquiry}</li>
+              </ul>
+            </article>
+          ))}
         </div>
       </section>
 
