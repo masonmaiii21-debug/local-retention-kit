@@ -40,36 +40,100 @@ function includesAny(text: string, words: string[]) {
 
 function analyzeReview({ rating, review }: { rating: number; review: string }) {
   const lower = review.toLowerCase();
-  const sentimentText = lower.replaceAll("not bad", "");
+  const sentimentText = lower
+    .replaceAll("not bad", "")
+    .replaceAll("差不多", "");
+  const positiveText = lower
+    .replaceAll("not happy", "")
+    .replaceAll("not professional", "")
+    .replaceAll("not friendly", "")
+    .replaceAll("不专业", "")
+    .replaceAll("不友好", "")
+    .replaceAll("不满意", "")
+    .replaceAll("不好", "");
   const signals = [
     {
       type: "Pet care concern",
       severity: "high",
-      keys: ["hurt", "injured", "injury", "cut my dog", "cut my pet", "nicked", "scratch", "scratched", "bleeding", "burn", "rash", "vet", "rough", "unsafe", "traumatized", "limping"],
+      keys: [
+        "hurt", "injured", "injury", "cut my dog", "cut my pet", "nicked", "scratch", "scratched", "bleeding", "burn", "rash", "vet", "rough", "unsafe", "traumatized", "limping",
+        "受伤", "弄伤", "流血", "划伤", "割伤", "不安全", "吓坏", "一瘸一拐", "去看兽医",
+        "lastimado", "herido", "sangrando", "inseguro", "veterinario",
+        "blesse", "blessé", "saigne", "dangereux", "veterinaire", "vétérinaire",
+        "verletzt", "blutet", "unsicher", "tierarzt",
+        "怪我", "出血", "危険", "獣医",
+        "다쳤", "피가", "위험", "동물병원",
+      ],
       detail: "your concern about your pet's comfort and safety",
+    },
+    {
+      type: "Abusive or angry feedback",
+      severity: "medium",
+      keys: [
+        "idiot", "stupid", "trash", "garbage", "scam", "fraud", "ripoff", "useless",
+        "傻逼", "垃圾", "骗子", "恶心", "坑", "坑钱", "滚", "废物", "无语",
+        "idiota", "basura", "estafa", "inutil", "inútil",
+        "arnaque", "nul", "nulle", "ordure",
+        "dumm", "betrug", "müll", "muell",
+        "馬鹿", "バカ", "詐欺", "ゴミ",
+        "멍청", "쓰레기", "사기",
+      ],
+      detail: "the frustration expressed in the review",
     },
     {
       type: "Grooming quality",
       severity: "medium",
-      keys: ["bad haircut", "uneven", "too short", "shaved", "patchy", "missed spots", "dirty", "not clean", "smell", "not what i asked", "ignored instructions", "wrong cut"],
+      keys: [
+        "bad haircut", "uneven", "too short", "shaved", "patchy", "missed spots", "dirty", "not clean", "smell", "not what i asked", "ignored instructions", "wrong cut",
+        "剪坏", "剪得太短", "剃太短", "不均匀", "没洗干净", "很脏", "臭", "不是我要的",
+        "mal corte", "corte malo", "desigual", "sucio", "olor",
+        "mauvaise coupe", "sale", "odeur", "trop court",
+        "schlechter schnitt", "ungleich", "schmutzig", "zu kurz",
+        "カットが悪い", "汚い", "臭い", "短すぎ",
+        "엉망", "더러", "냄새", "너무 짧",
+      ],
       detail: "the grooming result not matching expectations",
     },
     {
       type: "Scheduling issue",
       severity: "medium",
-      keys: ["late", "wait", "waiting", "delayed", "rescheduled", "cancelled", "canceled", "appointment", "booking"],
+      keys: [
+        "late", "wait", "waiting", "delayed", "rescheduled", "cancelled", "canceled", "appointment", "booking",
+        "迟到", "等太久", "等了很久", "延迟", "取消", "改时间", "预约",
+        "tarde", "espera", "esperando", "retraso", "cancelado", "cita", "reserva",
+        "retard", "attente", "annule", "annulé", "rendez-vous",
+        "spät", "spaet", "warte", "verspätet", "verspaetet", "termin",
+        "遅い", "待った", "予約", "キャンセル",
+        "늦", "기다", "예약", "취소",
+      ],
       detail: "the scheduling or wait-time experience",
     },
     {
       type: "Pricing concern",
       severity: "medium",
-      keys: ["expensive", "overcharged", "price", "cost", "charge", "fee"],
+      keys: [
+        "expensive", "overcharged", "price", "cost", "charge", "fee",
+        "太贵", "贵", "乱收费", "收费", "价格", "不值",
+        "caro", "costoso", "cobro", "precio",
+        "cher", "trop cher", "prix", "facture",
+        "teuer", "preis", "kosten",
+        "高い", "料金", "価格",
+        "비싸", "가격", "요금",
+      ],
       detail: "your concern about pricing",
     },
     {
       type: "Staff experience",
       severity: "medium",
-      keys: ["rude", "unfriendly", "ignored", "attitude", "not helpful", "dismissive"],
+      keys: [
+        "rude", "unfriendly", "ignored", "attitude", "not helpful", "not professional", "not friendly", "dismissive",
+        "态度差", "不礼貌", "没礼貌", "冷漠", "不专业", "不理人",
+        "grosero", "maleducado", "antipatico", "antipático", "poco profesional",
+        "impoli", "désagréable", "desagreable", "pas professionnel",
+        "unfreundlich", "unhöflich", "unhoeflich", "unprofessionell",
+        "失礼", "態度悪い", "不親切",
+        "불친절", "무례", "태도",
+      ],
       detail: "the way the interaction with our team felt",
     },
     {
@@ -103,13 +167,30 @@ function analyzeReview({ rating, review }: { rating: number; review: string }) {
       detail: "the visit feeling smooth and positive",
     },
   ];
-  const negativeWords = ["bad", "terrible", "awful", "worst", "disappointed", "upset", "not happy", "poor", "never again", "refund", "complaint"];
-  const positiveWords = ["great", "amazing", "love", "loved", "friendly", "kind", "happy", "perfect", "excellent", "recommend"];
+  const negativeWords = [
+    "bad", "terrible", "awful", "worst", "disappointed", "upset", "not happy", "not professional", "not friendly", "poor", "never again", "refund", "complaint",
+    "差", "很差", "差劲", "糟糕", "烂", "失望", "不满意", "再也不", "退款", "投诉",
+    "malo", "mala", "terrible", "horrible", "pesimo", "pésimo", "decepcionado", "nunca mas", "nunca más", "reembolso", "queja",
+    "mauvais", "mauvaise", "horrible", "déçu", "decu", "jamais", "remboursement", "plainte",
+    "schlecht", "schrecklich", "enttäuscht", "enttaeuscht", "nie wieder", "rückerstattung", "rueckerstattung",
+    "最悪", "ひどい", "悪い", "二度と", "返金", "苦情",
+    "최악", "나쁘", "실망", "다시는", "환불", "불만",
+  ];
+  const positiveWords = [
+    "great", "amazing", "love", "loved", "friendly", "kind", "happy", "perfect", "excellent", "recommend",
+    "很好", "很棒", "满意", "喜欢", "推荐", "专业", "友好",
+    "bueno", "excelente", "amable", "recomiendo", "perfecto",
+    "bon", "excellent", "gentil", "recommande", "parfait",
+    "gut", "freundlich", "perfekt", "empfehlen",
+    "良い", "最高", "親切", "おすすめ",
+    "좋", "친절", "완벽", "추천",
+  ];
   const matched = signals.filter((signal) => includesAny(lower, signal.keys));
   const hasHighRiskIssue = matched.some((signal) => signal.severity === "high");
   const hasNeutralText = matched.some((signal) => ["Suggestion", "Neutral experience", "Uncertain feedback"].includes(signal.type));
+  const hasNegatedPositivePhrase = includesAny(lower, ["not happy", "not professional", "not friendly", "not kind", "不专业", "不友好", "不好"]);
   const hasNegativeText = includesAny(sentimentText, negativeWords) || matched.some((signal) => signal.severity === "high" || (signal.severity === "medium" && signal.type !== "Pet comfort"));
-  const hasPositiveText = includesAny(lower, positiveWords) || matched.some((signal) => signal.type === "Positive service");
+  const hasPositiveText = includesAny(positiveText, positiveWords) || (matched.some((signal) => signal.type === "Positive service") && !hasNegatedPositivePhrase);
   const primary = matched.find((signal) => signal.severity === "high")
     || matched.find((signal) => signal.severity === "medium")
     || matched.find((signal) => ["Suggestion", "Neutral experience", "Uncertain feedback"].includes(signal.type))
@@ -216,6 +297,8 @@ Deno.serve(async (request) => {
         instructions: [
           "You write natural review replies for small local service businesses.",
           "First classify the review sentiment from the review text and rating: positive, neutral, mixed, or negative.",
+          "The customer review may be written in English, Chinese, Spanish, French, German, Japanese, Korean, or another language.",
+          "Always write the final business reply in English, even when the review is not English.",
           "If the review contains complaints, safety concerns, pet discomfort, rude service, price concerns, or scheduling issues, acknowledge that specific issue and do not use a generic positive reply even if the rating is high.",
           "If the review is neutral, factual, uncertain, or lightly suggestive, respond with calm appreciation and relationship-building rather than exaggerated praise.",
           "Avoid generic AI phrases like 'we value your feedback' unless the review is negative.",

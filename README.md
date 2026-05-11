@@ -24,7 +24,7 @@ https://masonmaiii21-debug.github.io/local-retention-kit/
 - 复购提醒文案生成
 - 新用户优惠生成器：生成首单福利、增值服务、推荐奖励或二次预约奖励，并附带规则和发布文案
 - Google/Yelp 等评论回复文案生成
-- 评论甄别：按评论内容和星级识别 positive / neutral / mixed / negative、问题类型和严重程度，再生成对应回复
+- 多语言评论甄别：按英文、中文、西班牙语、法语、德语、日语、韩语等评论内容和星级识别 positive / neutral / mixed / negative、问题类型和严重程度，再统一生成英文回复
 - 可编辑客户管道，自动保存到浏览器
 - Supabase 配置存在时支持登录和云端保存
 - 导入订单 CSV，按客户合并订单并自动标记复购/跟进状态
