@@ -23,21 +23,28 @@ import { hasSupabaseConfig, supabase } from "./supabaseClient";
 
 const niches = {
   pet: {
-    label: "宠物美容",
+    label: "Pet grooming",
     business: "Happy Paws Grooming",
-    buyer: "宠物店老板",
+    buyer: "Pet service owner",
     service: "full groom appointment",
     objection: "price",
     channels: ["SMS", "Email", "Instagram DM"],
-    pain: "客户做完一次护理后没有自动复购提醒，Google 评论也经常没人回。",
-    promise: "7 天内补齐复购提醒、未成交跟进和评论回复文案。",
+    pain: "Most shops lose repeat bookings because reminders, review replies, and inquiry follow-ups are handled manually.",
+    promise: "A ready-to-use follow-up and review-response kit for your pet service business.",
   },
 };
 
-const leadStages = ["新咨询", "已报价", "未回复", "已预约", "需复购"];
-const tones = ["专业", "温暖", "简短", "挽回"];
+const leadStages = ["New inquiry", "Quoted", "No reply", "Booked", "Due to rebook"];
+const tones = ["Professional", "Warm", "Short", "Recovery"];
 const aiEndpoint = import.meta.env.VITE_AI_ENDPOINT || "";
 const visibleNicheKeys = ["pet"];
+const stageLabels = {
+  "\u65b0\u54a8\u8be2": "New inquiry",
+  "\u5df2\u62a5\u4ef7": "Quoted",
+  "\u672a\u56de\u590d": "No reply",
+  "\u5df2\u9884\u7ea6": "Booked",
+  "\u9700\u590d\u8d2d": "Due to rebook",
+};
 const sampleOrdersCsv = `customer_name,email,phone,order_date,amount,service
 Mia Chen,mia@example.com,555-0101,2026-04-24,85,dog bath + trim
 Lucas Brown,lucas@example.com,555-0102,2026-04-21,140,two-dog grooming
@@ -45,31 +52,31 @@ Emma Davis,emma@example.com,555-0103,2026-03-17,75,monthly grooming
 Mia Chen,mia@example.com,555-0101,2026-03-20,80,dog bath
 Noah Wilson,noah@example.com,555-0104,2026-02-22,95,nail trim + bath`;
 const sampleLeads = [
-  { id: "lead-1", name: "Mia Chen", stage: "已报价", value: 85, days: 2, need: "dog bath + trim" },
-  { id: "lead-2", name: "Lucas Brown", stage: "未回复", value: 140, days: 5, need: "two-dog grooming" },
-  { id: "lead-3", name: "Emma Davis", stage: "需复购", value: 75, days: 34, need: "monthly grooming" },
+  { id: "lead-1", name: "Mia Chen", stage: "Quoted", value: 85, days: 2, need: "dog bath + trim" },
+  { id: "lead-2", name: "Lucas Brown", stage: "No reply", value: 140, days: 5, need: "two-dog grooming" },
+  { id: "lead-3", name: "Emma Davis", stage: "Due to rebook", value: 75, days: 34, need: "monthly grooming" },
 ];
 const servicePackages = {
   Starter: {
     price: 99,
-    promise: "24 小时内交付第一版文案包",
-    deliverables: ["20 条评论回复模板", "20 条复购提醒文案", "10 条未成交跟进文案", "客户跟进表格"],
+    promise: "First draft delivered within 24 hours after payment",
+    deliverables: ["20 review reply templates", "20 rebooking reminders", "10 inquiry follow-ups", "Simple customer follow-up tracker"],
   },
   Setup: {
     price: 199,
-    promise: "48 小时内交付定制文案包和设置说明",
-    deliverables: ["Starter 全部内容", "按店铺语气改写", "30 分钟设置指导", "7 天后复盘一次"],
+    promise: "Customized copy pack and setup notes within 48 hours",
+    deliverables: ["Everything in Starter", "Messages adapted to your shop's tone", "30-minute setup walkthrough", "One 7-day follow-up review"],
   },
   "Done-for-you": {
     price: 299,
-    promise: "72 小时内整理首批真实客户并生成跟进包",
-    deliverables: ["Setup 全部内容", "导入最多 50 个客户", "生成首批真实跟进文案", "提供 2 周使用建议"],
+    promise: "First real-customer follow-up batch prepared within 72 hours",
+    deliverables: ["Everything in Setup", "Import up to 50 customers", "First batch of real follow-up messages", "Two weeks of usage guidance"],
   },
 };
 
 function buildFollowUp({ businessName, leadName, stage, days, channel, service, objection, tone }) {
   const business = businessName.trim() || "Your business";
-  const softer = tone === "温暖" ? "Hope you and your family are doing well." : "Quick follow-up.";
+  const softer = tone === "Warm" ? "Hope you and your family are doing well." : "Quick follow-up.";
   const urgency = days > 3 ? "I wanted to make sure this did not get buried." : "I wanted to check in while the details are still fresh.";
   const objectionLine = {
     price: "If budget is the main concern, I can suggest the best-value option before you book.",
@@ -118,7 +125,7 @@ function buildReviewReply({ businessName, rating, review, tone }) {
 
 function buildRebook({ businessName, leadName, service, tone }) {
   const business = businessName.trim() || "Your business";
-  const warm = tone === "温暖" ? "We loved having you in last time." : "It may be time to book again.";
+  const warm = tone === "Warm" ? "We loved having you in last time." : "It may be time to book again.";
   return `Hi ${leadName}, ${business} here. ${warm} Would you like me to reserve a spot for your next ${service}? I can send two available times.`;
 }
 
@@ -126,7 +133,7 @@ function buildSamplePack({ prospectName, observation, service, tone }) {
   const business = prospectName.trim() || "your shop";
   const detail = observation.trim() || "your reviews and repeat-service flow look like a strong fit";
   const offer = service.trim() || "grooming appointment";
-  const warmer = tone === "温暖" ? "Hope you are having a good week." : "Quick idea.";
+  const warmer = tone === "Warm" ? "Hope you are having a good week." : "Quick idea.";
 
   return {
     review: `Thanks so much for trusting ${business}. We are glad your visit went smoothly and appreciate you taking the time to leave a review. We hope to see you again for the next ${offer}.`,
@@ -263,7 +270,7 @@ Before delivery:
 - Ask for recent reviews or customer examples if missing
 - Generate review replies, rebooking reminders, and lead follow-ups
 - Export or copy the finished pack into a simple document
-- Send the delivery email and mark the lead as 已预约 or 需复购`,
+- Send the delivery email and mark the lead as Booked or Due to rebook`,
     deliveryEmail: `Subject: First draft for ${business}
 
 Hi ${contact},
@@ -290,10 +297,17 @@ async function copyText(text) {
 function loadLeads() {
   try {
     const stored = localStorage.getItem("local-retention-kit-leads");
-    return stored ? JSON.parse(stored) : sampleLeads;
+    return stored ? JSON.parse(stored).map(normalizeLead) : sampleLeads;
   } catch {
     return sampleLeads;
   }
+}
+
+function normalizeLead(lead) {
+  return {
+    ...lead,
+    stage: stageLabels[lead.stage] || lead.stage || "New inquiry",
+  };
 }
 
 function toCsvValue(value) {
@@ -394,9 +408,9 @@ function daysSince(dateValue) {
 }
 
 function stageFromOrders(orderCount, days, rebookDays = 28) {
-  if (days >= rebookDays * 2) return "未回复";
-  if (days >= rebookDays || orderCount >= 2) return "需复购";
-  return "已预约";
+  if (days >= rebookDays * 2) return "No reply";
+  if (days >= rebookDays || orderCount >= 2) return "Due to rebook";
+  return "Booked";
 }
 
 function ordersToLeads(csvText, rebookDays = 28) {
@@ -464,7 +478,7 @@ function dbToLead(row) {
   return {
     id: row.id,
     name: row.name,
-    stage: row.stage,
+    stage: stageLabels[row.stage] || row.stage,
     value: Number(row.value || 0),
     days: Number(row.days_since_contact || 0),
     need: row.service_need || "",
@@ -498,12 +512,12 @@ function App() {
   const [businessName, setBusinessName] = useState(niches.pet.business);
   const [rebookDays, setRebookDays] = useState(28);
   const [leadName, setLeadName] = useState("Mia");
-  const [stage, setStage] = useState("已报价");
+  const [stage, setStage] = useState("Quoted");
   const [days, setDays] = useState(3);
   const [channel, setChannel] = useState("SMS");
   const [service, setService] = useState(niches.pet.service);
   const [objection, setObjection] = useState("price");
-  const [tone, setTone] = useState("温暖");
+  const [tone, setTone] = useState("Warm");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("The team was friendly and my dog looked great.");
   const [prospectName, setProspectName] = useState("Austin Pet Stylist");
@@ -611,30 +625,30 @@ function App() {
   }
 
   async function loadCloudLeads() {
-    setSyncStatus("正在读取云端客户...");
+    setSyncStatus("Loading saved customers...");
     const { data, error } = await supabase
       .from("leads")
       .select("id,name,stage,value,days_since_contact,service_need")
       .order("created_at", { ascending: true });
 
     if (error) {
-      setSyncStatus(`云端读取失败：${error.message}`);
+      setSyncStatus(`Cloud sync failed: ${error.message}`);
       return;
     }
 
     const cloudLeads = data.map(dbToLead);
     setLeads(cloudLeads.length > 0 ? cloudLeads : sampleLeads);
     setSelectedLeadId(cloudLeads[0]?.id || sampleLeads[0].id);
-    setSyncStatus(cloudLeads.length > 0 ? "云端客户已同步。" : "云端暂无客户，先显示示例数据。");
+    setSyncStatus(cloudLeads.length > 0 ? "Saved customers loaded." : "No saved customers yet. Showing sample data.");
   }
 
   async function signInWithEmail() {
     if (!authEmail.trim()) {
-      setSyncStatus("请输入邮箱。");
+      setSyncStatus("Enter an email address.");
       return;
     }
 
-    setSyncStatus("正在发送登录链接...");
+    setSyncStatus("Sending login link...");
     const { error } = await supabase.auth.signInWithOtp({
       email: authEmail.trim(),
       options: {
@@ -642,13 +656,13 @@ function App() {
       },
     });
 
-    setSyncStatus(error ? `登录链接发送失败：${error.message}` : "登录链接已发送，请检查邮箱。");
+    setSyncStatus(error ? `Login link failed: ${error.message}` : "Login link sent. Check your email.");
   }
 
   async function signOut() {
     await supabase.auth.signOut();
     setSession(null);
-    setSyncStatus("已退出，当前使用浏览器本地数据。");
+    setSyncStatus("Signed out. This browser is using local data.");
   }
 
   function applyLead(lead) {
@@ -669,11 +683,11 @@ function App() {
 
     const { data, error } = await query;
     if (error) {
-      setSyncStatus(`保存失败：${error.message}`);
+      setSyncStatus(`Save failed: ${error.message}`);
       return lead;
     }
 
-    setSyncStatus("已保存到云端。");
+    setSyncStatus("Saved to cloud.");
     return dbToLead(data);
   }
 
@@ -701,7 +715,7 @@ function App() {
     const nextLead = {
       id: `lead-${Date.now()}`,
       name: "New Lead",
-      stage: "新咨询",
+      stage: "New inquiry",
       value: 99,
       days: 0,
       need: active.service,
@@ -718,7 +732,7 @@ function App() {
   async function deleteLead(id) {
     if (hasSupabaseConfig && session?.user && isUuid(id)) {
       const { error } = await supabase.from("leads").delete().eq("id", id);
-      setSyncStatus(error ? `删除失败：${error.message}` : "已从云端删除。");
+      setSyncStatus(error ? `Delete failed: ${error.message}` : "Deleted from cloud.");
       if (error) return;
     }
 
@@ -732,7 +746,7 @@ function App() {
   async function importOrdersCsvText(csvText) {
     const imported = ordersToLeads(csvText, Number(rebookDays) || 28);
     if (imported.length === 0) {
-      setImportStatus("没有识别到订单。请确认 CSV 有表头和至少一行订单。");
+      setImportStatus("No orders found. Make sure the CSV has headers and at least one order row.");
       return;
     }
 
@@ -742,23 +756,23 @@ function App() {
       return Array.from(existing.values());
     });
     applyLead(imported[0]);
-    setImportStatus(`已导入 ${imported.length} 个客户，并按最近消费自动标记跟进阶段。`);
+    setImportStatus(`Imported ${imported.length} customers and marked likely follow-up stages.`);
   }
 
   async function generateAiReviewReply() {
     if (!aiEndpoint) {
-      setAiStatus("智能生成服务还没配置，当前使用本地模板，仍可正常交付。");
+      setAiStatus("Smart generation is not connected yet. The built-in template is still ready to use.");
       setAiReviewReply("");
       return;
     }
 
     if (!review.trim()) {
-      setAiStatus("请输入一条真实评论，再生成回复。");
+      setAiStatus("Paste a real review first, then generate a reply.");
       return;
     }
 
     setIsGeneratingReview(true);
-    setAiStatus("正在生成更自然的评论回复...");
+    setAiStatus("Generating a more natural review reply...");
 
     try {
       const response = await fetch(aiEndpoint, {
@@ -776,18 +790,18 @@ function App() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || "生成失败");
+        throw new Error(data.error || "Generation failed");
       }
 
       setAiReviewReply(String(data.text || "").trim());
       setAiStatus(
         data.source === "fallback"
-          ? "已生成定制回复。当前使用备用生成模式，适合先交付首单。"
-          : "已生成评论回复。你可以继续改评论内容来重新生成。"
+          ? "Custom reply generated using backup mode."
+          : "Review reply generated. Edit the review and generate again if needed."
       );
     } catch (error) {
       setAiReviewReply("");
-      setAiStatus(`智能生成暂时不可用，已保留本地模板：${error.message}`);
+      setAiStatus(`Smart generation is unavailable. The template reply is still available: ${error.message}`);
     } finally {
       setIsGeneratingReview(false);
     }
@@ -811,14 +825,14 @@ function App() {
     const lead = {
       id: `lead-${Date.now()}`,
       name: intake.business,
-      stage: "已报价",
+      stage: "Quoted",
       value: intake.value,
       days: 0,
       need: `${intake.packageName} retention kit - ${intake.goal || active.service}`,
     };
     setLeads((current) => [lead, ...current]);
     applyLead(lead);
-    setDeliveryStatus(`${intake.business} 已保存到交付队列，并加入客户跟进表。`);
+    setDeliveryStatus(`${intake.business} was added to the setup queue and follow-up tracker.`);
   }
 
   function downloadCurrentDeliveryPack() {
@@ -834,7 +848,7 @@ function App() {
       deliveryPack.fulfillment,
     ].join("\n");
     downloadTextFile(`${sanitizeFileName(clientBusiness)}-${clientPackage.toLowerCase()}-delivery-pack.txt`, content);
-    setDeliveryStatus("交付包已下载，可以作为付款后的第一版交付文档。");
+    setDeliveryStatus("Delivery pack downloaded.");
   }
 
   async function handleCsvUpload(event) {
@@ -845,7 +859,7 @@ function App() {
     event.target.value = "";
   }
 
-  const dueLeads = leads.filter((lead) => lead.stage === "未回复" || lead.stage === "已报价" || lead.stage === "需复购");
+  const dueLeads = leads.filter((lead) => lead.stage === "No reply" || lead.stage === "Quoted" || lead.stage === "Due to rebook");
   const totalPipelineValue = leads.reduce((sum, lead) => sum + Number(lead.value || 0), 0);
   const activePackage = servicePackages[clientPackage] || servicePackages.Starter;
   const monthlyRecovered = Math.round(Number(missedRebookings || 0) * Number(averageTicket || 0) * (Number(recoveryRate || 0) / 100));
@@ -884,58 +898,55 @@ function App() {
           </div>
           <a className="nav-action" href="#generator">
             <Send size={16} />
-            生成文案
+            Create messages
           </a>
         </nav>
 
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">15 天可投入的宠物服务项目</p>
-            <h1>给宠物美容店卖“复购 + 跟进 + 评论回复”服务包</h1>
+            <p className="eyebrow">For pet grooming and local pet service teams</p>
+            <h1>Bring more pet clients back with ready-to-send follow-up messages.</h1>
             <p>
-              先不做重 SaaS。用可演示工具、行业模板和交付文档，包装成一次性部署服务，
-              向宠物美容、移动美容、宠物日托/寄养这类有复购场景的本地商家收费。
+              A lightweight retention kit for review replies, rebooking reminders, and unanswered inquiry follow-ups.
+              Use it with the email, text, Instagram, or booking tools you already have.
             </p>
             <div className="hero-actions">
               <a className="primary" href="#generator">
-                试用 MVP <ArrowRight size={18} />
-              </a>
-              <a className="secondary" href="#launch">
-                看 15 天计划
+                Try the message builder <ArrowRight size={18} />
               </a>
               <a className="secondary" href="#offer">
-                看报价
+                View pricing
               </a>
               <a className="secondary" href="#client-demo">
-                客户展示页
+                See how it works
               </a>
               <a className="secondary" href="#free-sample">
-                免费样例页
+                Free samples
               </a>
               <a className="secondary" href="#intake">
-                接单交付
+                Start setup
               </a>
             </div>
           </div>
 
           <div className="signal-panel" aria-label="project signal">
             <div className="panel-header">
-              <span>首选切入</span>
+              <span>Built for</span>
               <strong>{active.label}</strong>
             </div>
             <p>{active.pain}</p>
             <div className="metric-row">
               <div>
                 <strong>$99-$299</strong>
-                <span>首单报价</span>
+                <span>Setup packages</span>
               </div>
               <div>
-                <strong>7 天</strong>
-                <span>基础交付</span>
+                <strong>7-day</strong>
+                <span>Starter use plan</span>
               </div>
               <div>
-                <strong>15 天</strong>
-                <span>可开始投放</span>
+                <strong>Simple</strong>
+                <span>Simple launch path</span>
               </div>
             </div>
           </div>
@@ -945,11 +956,11 @@ function App() {
       <section className="client-demo" id="client-demo">
         <div className="section-heading split-heading">
           <div>
-            <p className="eyebrow">Client-facing Demo</p>
-            <h2>给商家看的英文销售页面</h2>
+            <p className="eyebrow">How it helps</p>
+            <h2>A simple follow-up system for repeat pet service customers.</h2>
           </div>
           <p className="section-note">
-            这部分可以直接给美国本地商家看：少讲技术，多讲复购、评论回复和少漏跟进。
+            Keep the workflow familiar: copy a message, send it through your current channel, and track the next step.
           </p>
         </div>
 
@@ -1056,7 +1067,7 @@ function App() {
 
       <section className="workspace" id="generator">
         <aside className="sidebar">
-          <h2>当前主攻行业</h2>
+          <h2>Service focus</h2>
           <div className="niche-list">
             {visibleNicheKeys.map((key) => {
               const item = niches[key];
@@ -1074,18 +1085,18 @@ function App() {
           </div>
 
           <div className="offer-box">
-            <span>服务承诺</span>
+            <span>What this does</span>
             <p>{active.promise}</p>
           </div>
 
           <div className="settings-box">
-            <span>商家设置</span>
+            <span>Shop settings</span>
             <label>
-              店名
+              Business name
               <input value={businessName} onChange={(event) => setBusinessName(event.target.value)} />
             </label>
             <label>
-              复购周期
+              Rebooking cycle
               <input
                 type="number"
                 min="1"
@@ -1096,25 +1107,25 @@ function App() {
           </div>
 
           <div className="cloud-box">
-            <span>数据保存</span>
+            <span>Data save</span>
             {!hasSupabaseConfig && (
-              <p>当前是本地模式。配置 Supabase 后，客户数据可登录后云端保存。</p>
+              <p>This demo saves in your browser. Cloud save is available when connected.</p>
             )}
             {hasSupabaseConfig && session?.user && (
               <>
-                <p>云端模式已开启：{session.user.email}</p>
-                <button onClick={signOut}>退出登录</button>
+                <p>Cloud save is active: {session.user.email}</p>
+                <button onClick={signOut}>Sign out</button>
               </>
             )}
             {hasSupabaseConfig && !session?.user && (
               <>
-                <p>输入邮箱获取 magic link，登录后云端保存客户。</p>
+                <p>Enter your email to receive a login link and save customers.</p>
                 <input
                   placeholder="you@example.com"
                   value={authEmail}
                   onChange={(event) => setAuthEmail(event.target.value)}
                 />
-                <button onClick={signInWithEmail}>发送登录链接</button>
+                <button onClick={signInWithEmail}>Send login link</button>
               </>
             )}
             {syncStatus && <small>{syncStatus}</small>}
@@ -1124,12 +1135,12 @@ function App() {
         <section className="tool-surface">
           <div className="toolbar">
             <div>
-              <p className="eyebrow">MVP Generator</p>
-              <h2>客户跟进文案生成器</h2>
+              <p className="eyebrow">Message Builder</p>
+              <h2>Create follow-up messages for pet customers</h2>
             </div>
             <button className="icon-button" title="Reset sample" onClick={() => {
               setLeadName("Mia");
-              setStage("已报价");
+              setStage("Quoted");
               setDays(3);
               setReview("The team was friendly and my dog looked great.");
               setAiReviewReply("");
@@ -1141,35 +1152,35 @@ function App() {
 
           <div className="form-grid">
             <label>
-              客户名
+              Customer name
               <input value={leadName} onChange={(event) => setLeadName(event.target.value)} />
             </label>
             <label>
-              跟进阶段
+              Follow-up stage
               <select value={stage} onChange={(event) => setStage(event.target.value)}>
                 {leadStages.map((item) => <option key={item}>{item}</option>)}
               </select>
             </label>
             <label>
-              距离上次沟通
+              Days since contact
               <input type="number" min="0" value={days} onChange={(event) => setDays(Number(event.target.value))} />
             </label>
             <label>
-              渠道
+              Channel
               <select value={channel} onChange={(event) => setChannel(event.target.value)}>
                 {active.channels.map((item) => <option key={item}>{item}</option>)}
               </select>
             </label>
             <label>
-              服务项目
+              Service
               <input value={service} onChange={(event) => setService(event.target.value)} />
             </label>
             <label>
-              主要顾虑
+              Main concern
               <select value={objection} onChange={(event) => setObjection(event.target.value)}>
-                <option value="price">价格</option>
-                <option value="trust">信任</option>
-                <option value="schedule">时间</option>
+                <option value="price">Price</option>
+                <option value="trust">Trust</option>
+                <option value="schedule">Schedule</option>
               </select>
             </label>
           </div>
@@ -1183,8 +1194,8 @@ function App() {
           </div>
 
           <div className="output-grid">
-            <OutputCard icon={<MessageSquareText size={18} />} title="未成交跟进" text={followUp} />
-            <OutputCard icon={<RefreshCcw size={18} />} title="复购提醒" text={rebook} />
+            <OutputCard icon={<MessageSquareText size={18} />} title="Inquiry follow-up" text={followUp} />
+            <OutputCard icon={<RefreshCcw size={18} />} title="Rebooking reminder" text={rebook} />
           </div>
         </section>
 
@@ -1192,28 +1203,28 @@ function App() {
           <div className="toolbar">
             <div>
               <p className="eyebrow">Review Assist</p>
-              <h2>评论回复生成器</h2>
+              <h2>Review reply builder</h2>
             </div>
             <Star size={22} />
           </div>
           <div className="form-grid compact">
             <label>
-              星级
+              Star rating
               <input type="number" min="1" max="5" value={rating} onChange={(event) => setRating(Number(event.target.value))} />
             </label>
             <label className="wide">
-              评论内容
+              Review text
               <textarea value={review} onChange={(event) => setReview(event.target.value)} />
             </label>
           </div>
           <div className="ai-actions">
             <button onClick={generateAiReviewReply} disabled={isGeneratingReview}>
               <Sparkles size={16} />
-              {isGeneratingReview ? "生成中" : "智能生成评论回复"}
+              {isGeneratingReview ? "Generating" : "Create review reply"}
             </button>
             {aiStatus && <span>{aiStatus}</span>}
           </div>
-          <OutputCard icon={<Mail size={18} />} title={aiReviewReply ? "定制商家回复" : "商家回复"} text={finalReviewReply} />
+          <OutputCard icon={<Mail size={18} />} title={aiReviewReply ? "Custom business reply" : "Business reply"} text={finalReviewReply} />
         </section>
       </section>
 
@@ -1221,33 +1232,33 @@ function App() {
         <div className="section-heading split-heading">
           <div>
             <p className="eyebrow">Free Sample Pack</p>
-            <h2>给潜在客户看的 3 条免费样例</h2>
+            <h2>Build 3 free sample messages</h2>
           </div>
           <p className="section-note">
-            商家回复“可以看看”时，输入店名和观察点，复制这 3 条作为免费样例。
+            Enter a business name, service, and one specific observation. The samples are ready to copy into email or DM.
           </p>
         </div>
 
         <div className="sample-builder">
           <div className="form-grid">
             <label>
-              商家名
+              Business name
               <input value={prospectName} onChange={(event) => setProspectName(event.target.value)} />
             </label>
             <label>
-              服务项目
+              Service
               <input value={sampleService} onChange={(event) => setSampleService(event.target.value)} />
             </label>
             <label>
-              具体观察
+              Specific observation
               <input value={prospectObservation} onChange={(event) => setProspectObservation(event.target.value)} />
             </label>
           </div>
-          <OutputCard icon={<Sparkles size={18} />} title="发样例前的开场句" text={samplePack.opener} />
+          <OutputCard icon={<Sparkles size={18} />} title="Opening note" text={samplePack.opener} />
           <div className="output-grid">
-            <OutputCard icon={<Star size={18} />} title="评论回复样例" text={samplePack.review} />
-            <OutputCard icon={<RefreshCcw size={18} />} title="复购提醒样例" text={samplePack.rebook} />
-            <OutputCard icon={<MessageSquareText size={18} />} title="未成交跟进样例" text={samplePack.inquiry} />
+            <OutputCard icon={<Star size={18} />} title="Review reply sample" text={samplePack.review} />
+            <OutputCard icon={<RefreshCcw size={18} />} title="Rebooking sample" text={samplePack.rebook} />
+            <OutputCard icon={<MessageSquareText size={18} />} title="Inquiry follow-up sample" text={samplePack.inquiry} />
           </div>
         </div>
       </section>
@@ -1255,11 +1266,11 @@ function App() {
       <section className="intake-section" id="intake">
         <div className="section-heading split-heading">
           <div>
-            <p className="eyebrow">Client Intake</p>
-            <h2>客户同意后，快速生成收款和交付包</h2>
+            <p className="eyebrow">Start Setup</p>
+            <h2>Choose a package and prepare your first message pack.</h2>
           </div>
           <p className="section-note">
-            用它把“客户说可以”变成可执行订单：确认套餐、生成 PayPal 备注、保存线索、下载交付文档。
+            Select a package, enter your shop details, and download the setup notes and first delivery draft.
           </p>
         </div>
 
@@ -1280,31 +1291,31 @@ function App() {
 
             <div className="form-grid">
               <label>
-                店名
+                Business name
                 <input value={clientBusiness} onChange={(event) => setClientBusiness(event.target.value)} />
               </label>
               <label>
-                联系人
+                Contact name
                 <input value={clientContact} onChange={(event) => setClientContact(event.target.value)} />
               </label>
               <label>
-                客户邮箱
+                Email
                 <input placeholder="client@example.com" value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} />
               </label>
               <label>
-                交付时间
+                Target delivery time
                 <input value={clientDeadline} onChange={(event) => setClientDeadline(event.target.value)} />
               </label>
               <label>
-                品牌语气
+                Brand voice
                 <input value={clientVoice} onChange={(event) => setClientVoice(event.target.value)} />
               </label>
               <label>
-                现有工具/数据
+                Current tools or data
                 <input value={clientTools} onChange={(event) => setClientTools(event.target.value)} />
               </label>
               <label className="full-span">
-                客户目标
+                Main goal
                 <textarea value={clientGoal} onChange={(event) => setClientGoal(event.target.value)} />
               </label>
             </div>
@@ -1312,11 +1323,11 @@ function App() {
             <div className="intake-actions">
               <button onClick={saveClientIntake}>
                 <Check size={16} />
-                保存为订单线索
+                Save setup
               </button>
               <button onClick={downloadCurrentDeliveryPack}>
                 <Download size={16} />
-                下载交付包
+                Download message pack
               </button>
             </div>
 
@@ -1330,7 +1341,7 @@ function App() {
 
           <aside className="intake-summary">
             <div>
-              <span>当前套餐</span>
+              <span>Selected package</span>
               <strong>${activePackage.price}</strong>
               <p>{activePackage.promise}</p>
             </div>
@@ -1340,8 +1351,8 @@ function App() {
               ))}
             </ul>
             <div className="recent-intakes">
-              <span>最近订单线索</span>
-              {intakes.length === 0 && <p>还没有保存订单。保存后这里会显示最近 8 个客户。</p>}
+              <span>Recent setups</span>
+              {intakes.length === 0 && <p>No saved setups yet.</p>}
               {intakes.map((item) => (
                 <button key={item.id} onClick={() => {
                   setClientBusiness(item.business);
@@ -1360,12 +1371,12 @@ function App() {
         </div>
 
         <div className="delivery-output-grid">
-          <OutputCard icon={<PackageCheck size={18} />} title="PayPal 账单备注" text={deliveryPack.invoice} />
-          <OutputCard icon={<Mail size={18} />} title="付款后确认邮件" text={deliveryPack.confirmation} />
-          <OutputCard icon={<Check size={18} />} title="交付检查清单" text={deliveryPack.checklist} />
-          <OutputCard icon={<Send size={18} />} title="第一版交付邮件" text={deliveryPack.deliveryEmail} />
+          <OutputCard icon={<PackageCheck size={18} />} title="Invoice note" text={deliveryPack.invoice} />
+          <OutputCard icon={<Mail size={18} />} title="Confirmation email" text={deliveryPack.confirmation} />
+          <OutputCard icon={<Check size={18} />} title="Setup checklist" text={deliveryPack.checklist} />
+          <OutputCard icon={<Send size={18} />} title="Delivery email" text={deliveryPack.deliveryEmail} />
           <div className="full-output">
-            <OutputCard icon={<Sparkles size={18} />} title="完整交付文案包" text={deliveryPack.fulfillment} />
+            <OutputCard icon={<Sparkles size={18} />} title="Full message pack" text={deliveryPack.fulfillment} />
           </div>
         </div>
       </section>
@@ -1373,21 +1384,21 @@ function App() {
       <section className="pipeline" id="crm">
         <div className="section-heading split-heading">
           <div>
-            <p className="eyebrow">Working CRM</p>
-            <h2>可操作的客户跟进工作台</h2>
+            <p className="eyebrow">Customer Tracker</p>
+            <h2>Track who needs a follow-up next.</h2>
           </div>
           <div className="table-actions">
             <button onClick={createLead}>
               <Plus size={16} />
-              新客户
+              New customer
             </button>
             <button onClick={saveCurrentLead}>
               <Check size={16} />
-              保存当前客户
+              Save current customer
             </button>
             <button onClick={() => downloadLeadsCsv(leads)}>
               <Download size={16} />
-              导出 CSV
+              Export CSV
             </button>
           </div>
         </div>
@@ -1395,20 +1406,20 @@ function App() {
         <div className="import-panel">
           <div>
             <p className="eyebrow">Order Import</p>
-            <h2>导入订单 CSV，自动找出该复购客户</h2>
+            <h2>Import an order CSV and find customers who may be due to return.</h2>
             <p>
-              支持 Square、Wix、Shopify、Clover 等后台导出的订单表。识别客户名、订单日期、金额和服务项目后，
-              自动合并成客户跟进列表。
+              Works with common exports from Square, Wix, Shopify, Clover, and similar tools. The importer looks for customer names,
+              order dates, amounts, and services, then turns them into a simple follow-up list.
             </p>
           </div>
           <div className="import-actions">
             <label className="file-button">
               <FileUp size={16} />
-              导入订单 CSV
+              Import order CSV
               <input type="file" accept=".csv,text/csv" onChange={handleCsvUpload} />
             </label>
             <button onClick={() => importOrdersCsvText(sampleOrdersCsv)}>
-              使用示例订单
+              Use sample orders
             </button>
           </div>
           {importStatus && (
@@ -1422,26 +1433,26 @@ function App() {
         <div className="dashboard-strip">
           <div>
             <strong>{leads.length}</strong>
-            <span>客户/线索</span>
+            <span>Customers</span>
           </div>
           <div>
             <strong>{dueLeads.length}</strong>
-            <span>需要跟进</span>
+            <span>Need follow-up</span>
           </div>
           <div>
             <strong>${totalPipelineValue}</strong>
-            <span>潜在金额</span>
+            <span>Pipeline value</span>
           </div>
         </div>
 
         <div className="lead-table">
           <div className="lead-row table-head">
-            <span>客户</span>
-            <span>阶段</span>
-            <span>金额</span>
-            <span>未联系</span>
-            <span>服务项目</span>
-            <span>操作</span>
+            <span>Customer</span>
+            <span>Stage</span>
+            <span>Value</span>
+            <span>Days</span>
+            <span>Service</span>
+            <span>Action</span>
           </div>
           {leads.map((lead) => (
             <div className="lead-row" key={lead.id}>
@@ -1453,7 +1464,7 @@ function App() {
               <input type="number" min="0" value={lead.days} onChange={(event) => updateLead(lead.id, { days: Number(event.target.value) })} />
               <input value={lead.need} onChange={(event) => updateLead(lead.id, { need: event.target.value })} />
               <div className="row-actions">
-                <button onClick={() => applyLead(lead)}>生成</button>
+                <button onClick={() => applyLead(lead)}>Use</button>
                 <button className="ghost-danger" title="Delete lead" onClick={() => deleteLead(lead.id)}>
                   <Trash2 size={15} />
                 </button>
@@ -1465,13 +1476,13 @@ function App() {
         <div className="task-panel">
           <div className="section-heading">
             <p className="eyebrow">Next Actions</p>
-            <h2>今天该跟进谁</h2>
+            <h2>Suggested follow-ups</h2>
           </div>
           <div className="task-list">
             {dueLeads.map((lead) => (
               <button key={lead.id} onClick={() => applyLead(lead)}>
                 <strong>{lead.name}</strong>
-                <span>{lead.stage} · {lead.days} 天未联系 · {lead.need}</span>
+                <span>{lead.stage} · {lead.days} days since contact · {lead.need}</span>
               </button>
             ))}
           </div>
@@ -1480,8 +1491,8 @@ function App() {
 
       <section className="offer-section" id="offer">
         <div className="section-heading">
-          <p className="eyebrow">Productized Service</p>
-          <h2>直接拿去卖的服务包</h2>
+          <p className="eyebrow">Packages</p>
+          <h2>Pick the level of help your shop needs.</h2>
         </div>
         <div className="offer-grid">
           <article className="pricing-card">
@@ -1490,12 +1501,12 @@ function App() {
               <strong>Starter</strong>
             </div>
             <h3>$99</h3>
-            <p>适合第一个试单，用低风险价格换案例和反馈。</p>
+            <p>A focused starter pack for shops that want useful messages without a complicated setup.</p>
             <ul>
-              <li>20 条评论回复模板</li>
-              <li>20 条复购提醒文案</li>
-              <li>10 条未成交跟进文案</li>
-              <li>一个客户跟进表格</li>
+              <li>20 review reply templates</li>
+              <li>20 rebooking reminders</li>
+              <li>10 inquiry follow-ups</li>
+              <li>Simple follow-up tracker</li>
             </ul>
           </article>
           <article className="pricing-card featured">
@@ -1504,12 +1515,12 @@ function App() {
               <strong>Setup</strong>
             </div>
             <h3>$199</h3>
-            <p>主推档位，包含按店铺风格定制和一次设置指导。</p>
+            <p>A customized setup with messages adjusted to your shop's tone and workflow.</p>
             <ul>
-              <li>Starter 全部内容</li>
-              <li>按商家语气改写</li>
-              <li>30 分钟视频设置指导</li>
-              <li>7 天后复盘一次</li>
+              <li>Everything in Starter</li>
+              <li>Copy adapted to your tone</li>
+              <li>30-minute setup walkthrough</li>
+              <li>One 7-day review</li>
             </ul>
           </article>
           <article className="pricing-card">
@@ -1518,12 +1529,12 @@ function App() {
               <strong>Done-for-you</strong>
             </div>
             <h3>$299</h3>
-            <p>适合愿意省时间的老板，你直接帮他整理首批真实客户。</p>
+            <p>For busy teams that want the first real customer batch prepared for them.</p>
             <ul>
-              <li>Setup 全部内容</li>
-              <li>导入最多 50 个客户</li>
-              <li>生成首批真实跟进文案</li>
-              <li>提供 2 周使用建议</li>
+              <li>Everything in Setup</li>
+              <li>Import up to 50 customers</li>
+              <li>First real follow-up batch</li>
+              <li>Two weeks of usage guidance</li>
             </ul>
           </article>
         </div>
@@ -1531,15 +1542,15 @@ function App() {
 
       <section className="launch" id="launch">
         <div className="section-heading">
-          <p className="eyebrow">Go-to-market</p>
-          <h2>15 天启动路线</h2>
+          <p className="eyebrow">How setup works</p>
+          <h2>A clear path from sample to first message pack.</h2>
         </div>
         <div className="launch-grid">
           {[
-            ["1-3 天", "完善宠物美容 Demo、截图、服务说明页，准备 3 个宠物店样例。"],
-            ["4-6 天", "整理 60 个宠物美容、移动美容、宠物日托/寄养潜在客户。"],
-            ["7-10 天", "每天发 15 条定制邮件或私信，附一段免费评论回复或复购提醒。"],
-            ["11-15 天", "以 $99-$299 接首单，交付宠物服务商可直接使用的文案包。"],
+            ["Step 1", "Review the free samples and decide whether the tone fits your shop."],
+            ["Step 2", "Choose Starter, Setup, or Done-for-you based on how much help you want."],
+            ["Step 3", "Share your services, current tools, and the kind of customers you want to follow up with."],
+            ["Step 4", "Receive a ready-to-copy message pack and start using it in your normal workflow."],
           ].map(([day, text]) => (
             <div className="launch-card" key={day}>
               <strong>{day}</strong>
