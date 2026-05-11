@@ -8,6 +8,7 @@ import {
   Copy,
   Download,
   FileUp,
+  Gift,
   Mail,
   MessageSquareText,
   PackageCheck,
@@ -29,13 +30,19 @@ const niches = {
     service: "full groom appointment",
     objection: "price",
     channels: ["SMS", "Email", "Instagram DM"],
-    pain: "Most shops lose repeat bookings because reminders, review replies, and inquiry follow-ups are handled manually.",
-    promise: "A ready-to-use follow-up and review-response kit for your pet service business.",
+    pain: "Most shops lose repeat bookings because reminders, review replies, inquiry follow-ups, and first-visit offers are handled manually.",
+    promise: "A ready-to-use follow-up, review-response, and new-client offer kit for your pet service business.",
   },
 };
 
 const leadStages = ["New inquiry", "Quoted", "No reply", "Booked", "Due to rebook"];
 const tones = ["Professional", "Warm", "Short", "Recovery"];
+const newCustomerOffers = [
+  "First-visit bonus",
+  "Add-on upgrade",
+  "Friend referral",
+  "Second-visit credit",
+];
 const aiEndpoint = import.meta.env.VITE_AI_ENDPOINT || "";
 const visibleNicheKeys = ["pet"];
 const stageLabels = {
@@ -60,17 +67,17 @@ const servicePackages = {
   Starter: {
     price: 99,
     promise: "First draft delivered within 24 hours after payment",
-    deliverables: ["20 review reply templates", "20 rebooking reminders", "10 inquiry follow-ups", "Simple customer follow-up tracker"],
+    deliverables: ["20 review reply templates", "20 rebooking reminders", "10 inquiry follow-ups", "5 new-client offer ideas", "Simple customer follow-up tracker"],
   },
   Setup: {
     price: 199,
     promise: "Customized copy pack and setup notes within 48 hours",
-    deliverables: ["Everything in Starter", "Messages adapted to your shop's tone", "30-minute setup walkthrough", "One 7-day follow-up review"],
+    deliverables: ["Everything in Starter", "Messages adapted to your shop's tone", "New-client offer rules", "30-minute setup walkthrough", "One 7-day follow-up review"],
   },
   "Done-for-you": {
     price: 299,
     promise: "First real-customer follow-up batch prepared within 72 hours",
-    deliverables: ["Everything in Setup", "Import up to 50 customers", "First batch of real follow-up messages", "Two weeks of usage guidance"],
+    deliverables: ["Everything in Setup", "Import up to 50 customers", "First batch of real follow-up messages", "First new-client promo draft", "Two weeks of usage guidance"],
   },
 };
 
@@ -243,6 +250,61 @@ function buildRebook({ businessName, leadName, service, tone }) {
   return `Hi ${leadName}, ${business} here. ${warm} Would you like me to reserve a spot for your next ${service}? I can send two available times.`;
 }
 
+function buildNewCustomerOffer({ businessName, service, offerType, offerValue, offerDeadline, tone }) {
+  const business = businessName.trim() || "Your business";
+  const targetService = service.trim() || "first appointment";
+  const value = offerValue.trim() || "$10";
+  const deadline = offerDeadline.trim() || "this month";
+  const warm = tone === "Warm";
+
+  const offers = {
+    "First-visit bonus": {
+      name: `${value} New Client Welcome Credit`,
+      promise: `${value} off a first ${targetService}`,
+      benefit: "Easy to understand and simple for a first-time customer to redeem.",
+      rule: `Valid for first-time clients who book a ${targetService} by ${deadline}. Cannot be combined with other offers.`,
+      copy: `${warm ? "New here?" : "First-time client offer:"} Book your first ${targetService} with ${business} by ${deadline} and receive ${value} off your visit. Send us a message with "NEW CLIENT" and we will help you find an easy appointment time.`,
+    },
+    "Add-on upgrade": {
+      name: `Free First-Visit Add-On`,
+      promise: `A complimentary small add-on with a first ${targetService}`,
+      benefit: "Protects price perception because the customer receives extra value instead of a heavy discount.",
+      rule: `Valid for new clients booking a full-price ${targetService} by ${deadline}. Add-on depends on service availability.`,
+      copy: `${warm ? "We would love to welcome you in." : "New client bonus:"} First-time clients who book a ${targetService} by ${deadline} receive a complimentary small add-on during the visit. Message ${business} to reserve a spot.`,
+    },
+    "Friend referral": {
+      name: `Bring-a-Friend Welcome Perk`,
+      promise: `${value} credit for a new client and the friend who referred them`,
+      benefit: "Turns existing happy customers into the acquisition channel.",
+      rule: `New client must mention the referring customer when booking by ${deadline}. Credit applies after the first completed visit.`,
+      copy: `Know someone who needs a reliable ${targetService}? New clients get ${value} toward their first visit, and the customer who refers them gets the same credit after the visit is completed. Mention this offer when booking with ${business}.`,
+    },
+    "Second-visit credit": {
+      name: `First Visit, Next Visit Reward`,
+      promise: `${value} credit toward the second appointment`,
+      benefit: "Encourages the first booking while also pulling the customer into a repeat visit.",
+      rule: `New client must complete the first ${targetService} by ${deadline}. Credit is applied to the next visit booked within the normal service cycle.`,
+      copy: `Book your first ${targetService} with ${business} by ${deadline} and receive a ${value} credit for your next visit. It is a simple way to try us once and make the next appointment easier to schedule.`,
+    },
+  };
+
+  const selected = offers[offerType] || offers["First-visit bonus"];
+
+  return `Offer: ${selected.name}
+
+Customer benefit:
+${selected.promise}
+
+Why it works:
+${selected.benefit}
+
+Rules:
+${selected.rule}
+
+Ready-to-post copy:
+${selected.copy}`;
+}
+
 function buildSamplePack({ prospectName, observation, service, tone }) {
   const business = prospectName.trim() || "your shop";
   const detail = observation.trim() || "your reviews and repeat-service flow look like a strong fit";
@@ -298,13 +360,20 @@ function buildDeliveryPack({ clientBusiness, clientContact, clientEmail, clientP
     `Thanks again for reaching out to ${business}. Would you like me to hold an appointment option or answer any questions first?`,
     `Hi, I know things get busy. If you are still considering ${service}, reply here and I can make the next step easy.`,
   ], 10);
+  const newClientOfferIdeas = [
+    `New client welcome: offer a small first-visit credit for customers who book a full ${service} before the end of the month.`,
+    `Add-on upgrade: keep the core service full price and include a small complimentary add-on for first-time clients.`,
+    `Second-visit reward: give new clients a credit toward their next visit after completing the first appointment.`,
+    `Referral welcome: give both the new client and the referring customer a modest credit after the first completed visit.`,
+    `Slow-day starter: make the offer valid only on quieter appointment windows to fill unused capacity without discounting peak times.`,
+  ];
   const weeklyPlan = [
     "Day 1: Send the best-fit follow-up to open leads that already asked about service.",
     "Day 2: Reply to unanswered positive reviews with the review reply templates.",
     "Day 3: Send rebooking reminders to customers who are due based on the normal service cycle.",
-    "Day 4: Update any messages that sound too formal or too casual for the business.",
-    "Day 5: Track replies in the CRM and mark interested customers as booked or needs follow-up.",
-    "Day 6: Send a second soft follow-up only to people who did not reply.",
+    "Day 4: Test one new-client offer on a slow booking window.",
+    "Day 5: Update any messages that sound too formal or too casual for the business.",
+    "Day 6: Track replies in the CRM and mark interested customers as booked or needs follow-up.",
     "Day 7: Review what worked, keep the top messages, and prepare the next batch.",
   ];
   const fulfillment = `# ${business} - ${clientPackage} Retention Kit
@@ -335,6 +404,10 @@ ${numberedLines(rebookingMessages)}
 ## Lead Follow-up Messages
 
 ${numberedLines(leadFollowUps)}
+
+## New Client Offer Ideas
+
+${numberedLines(newClientOfferIdeas)}
 
 ## 7-Day Use Plan
 
@@ -677,6 +750,9 @@ function App() {
   const [service, setService] = useState(niches.pet.service);
   const [objection, setObjection] = useState("price");
   const [tone, setTone] = useState("Warm");
+  const [offerType, setOfferType] = useState("First-visit bonus");
+  const [offerValue, setOfferValue] = useState("$10");
+  const [offerDeadline, setOfferDeadline] = useState("this month");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("The team was friendly and my dog looked great.");
   const [prospectName, setProspectName] = useState("Austin Pet Stylist");
@@ -711,6 +787,10 @@ function App() {
   const rebook = useMemo(
     () => buildRebook({ businessName, leadName, service, tone }),
     [businessName, leadName, service, tone]
+  );
+  const newCustomerOffer = useMemo(
+    () => buildNewCustomerOffer({ businessName, service, offerType, offerValue, offerDeadline, tone }),
+    [businessName, service, offerType, offerValue, offerDeadline, tone]
   );
   const samplePack = useMemo(
     () => buildSamplePack({ prospectName, observation: prospectObservation, service: sampleService, tone }),
@@ -1361,6 +1441,40 @@ function App() {
             <OutputCard icon={<MessageSquareText size={18} />} title="Inquiry follow-up" text={followUp} />
             <OutputCard icon={<RefreshCcw size={18} />} title="Rebooking reminder" text={rebook} />
           </div>
+        </section>
+
+        <section className="tool-surface offer-tool">
+          <div className="toolbar">
+            <div>
+              <p className="eyebrow">New Customer Offer</p>
+              <h2>Create a first-visit benefit</h2>
+            </div>
+            <Gift size={22} />
+          </div>
+          <div className="form-grid compact">
+            <label>
+              Offer type
+              <select value={offerType} onChange={(event) => setOfferType(event.target.value)}>
+                {newCustomerOffers.map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+            <label>
+              Benefit value
+              <input value={offerValue} onChange={(event) => setOfferValue(event.target.value)} />
+            </label>
+            <label>
+              Booking deadline
+              <input value={offerDeadline} onChange={(event) => setOfferDeadline(event.target.value)} />
+            </label>
+            <label>
+              Service
+              <input value={service} onChange={(event) => setService(event.target.value)} />
+            </label>
+          </div>
+          <div className="offer-tips">
+            <span>Good first offers protect margin, feel specific, and give the customer a clear booking step.</span>
+          </div>
+          <OutputCard icon={<Gift size={18} />} title="New customer offer" text={newCustomerOffer} />
         </section>
 
         <section className="tool-surface review-tool">

@@ -627,6 +627,26 @@ main {
   grid-column: 2;
 }
 
+.offer-tool {
+  grid-column: 2;
+}
+
+.offer-tool .form-grid.compact {
+  grid-template-columns: 1.2fr 0.8fr 1fr 1.2fr;
+}
+
+.offer-tips {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid #dce7c2;
+  border-radius: 8px;
+  background: #f2f7e6;
+  color: #3f5f35;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .toolbar {
   justify-content: space-between;
   gap: 20px;
@@ -1445,7 +1465,12 @@ pre {
     grid-column: auto;
   }
 
+  .offer-tool {
+    grid-column: auto;
+  }
+
   .form-grid,
+  .offer-tool .form-grid.compact,
   .output-grid,
   .offer-grid,
   .pitch-points,
