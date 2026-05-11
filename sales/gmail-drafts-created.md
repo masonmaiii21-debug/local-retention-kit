@@ -12,12 +12,12 @@ Sent on 2026-05-10 from Mason's connected Gmail account.
 
 ## Second Batch Drafts Created
 
-Created on 2026-05-11 from Mason's connected Gmail account. These drafts have not been sent yet.
+Created and sent on 2026-05-11 from Mason's connected Gmail account.
 
-| Business | Recipient | Draft ID | Message ID | Status |
+| Business | Recipient | Draft ID | Draft Message ID | Sent Message ID | Status |
 | --- | --- | --- | --- | --- |
-| Lakeway Mobile Dog Grooming | Contact@lakewaymobiledoggrooming.com | r-7574023986353754578 | 19e146eb040a3e83 | Draft only |
-| Soco Pet Lounge | info@socopetlounge.com | r-3407374103259066542 | 19e146ebea1fd46f | Draft only |
-| Austin Pup Culture | austinpupculture@gmail.com | r8577169307119468494 | 19e146ec70c4b680 | Draft only |
-| BarkSuds Austin | austin@barksuds.com | r9177105779837833387 | 19e146ed5054ecc2 | Draft only |
-| Park and Bark Mobile Grooming | info@mobilepetgroomingaustin.com | r-5521167696103348987 | 19e146edfa25e046 | Draft only |
+| Lakeway Mobile Dog Grooming | Contact@lakewaymobiledoggrooming.com | r-7574023986353754578 | 19e146eb040a3e83 | 19e14757f58342a1 | Sent |
+| Soco Pet Lounge | info@socopetlounge.com | r-3407374103259066542 | 19e146ebea1fd46f | 19e14758c54b6cd3 | Sent |
+| Austin Pup Culture | austinpupculture@gmail.com | r8577169307119468494 | 19e146ec70c4b680 | 19e1475967fe5cb0 | Sent |
+| BarkSuds Austin | austin@barksuds.com | r9177105779837833387 | 19e146ed5054ecc2 | 19e1475a566de9c1 | Sent |
+| Park and Bark Mobile Grooming | info@mobilepetgroomingaustin.com | r-5521167696103348987 | 19e146edfa25e046 | 19e1475b04148bfc | Sent |
