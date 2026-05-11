@@ -905,10 +905,10 @@ function App() {
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">For pet grooming and local pet service teams</p>
-            <h1>Bring more pet clients back with ready-to-send follow-up messages.</h1>
+            <h1>Turn happy pet clients into repeat bookings.</h1>
             <p>
-              A lightweight retention kit for review replies, rebooking reminders, and unanswered inquiry follow-ups.
-              Use it with the email, text, Instagram, or booking tools you already have.
+              Ready-to-send review replies, rebooking reminders, and inquiry follow-ups for pet grooming and local pet service teams.
+              Keep customers coming back without adding another complicated app.
             </p>
             <div className="hero-actions">
               <a className="primary" href="#generator">
