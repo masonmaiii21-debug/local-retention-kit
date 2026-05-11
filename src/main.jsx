@@ -762,13 +762,13 @@ function App() {
 
   async function generateAiReviewReply() {
     if (!aiEndpoint) {
-      setAiStatus("AI endpoint 还没配置，当前使用本地模板。部署后客户可直接使用 AI 回复。");
+      setAiStatus("智能生成服务还没配置，当前使用本地模板，仍可正常交付。");
       setAiReviewReply("");
       return;
     }
 
     if (!review.trim()) {
-      setAiStatus("请输入一条真实评论，再生成 AI 回复。");
+      setAiStatus("请输入一条真实评论，再生成回复。");
       return;
     }
 
@@ -791,18 +791,18 @@ function App() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || "AI 生成失败");
+        throw new Error(data.error || "生成失败");
       }
 
       setAiReviewReply(String(data.text || "").trim());
       setAiStatus(
         data.source === "fallback"
-          ? "OpenAI 暂时不可用，已生成备用的定制回复。"
-          : "已生成 AI 评论回复。你可以继续改评论内容来重新生成。"
+          ? "已生成定制回复。当前使用备用生成模式，适合先交付首单。"
+          : "已生成评论回复。你可以继续改评论内容来重新生成。"
       );
     } catch (error) {
       setAiReviewReply("");
-      setAiStatus(`AI 暂时不可用，已保留本地模板：${error.message}`);
+      setAiStatus(`智能生成暂时不可用，已保留本地模板：${error.message}`);
     } finally {
       setIsGeneratingReview(false);
     }
@@ -1081,11 +1081,11 @@ function App() {
           <div className="ai-actions">
             <button onClick={generateAiReviewReply} disabled={isGeneratingReview}>
               <Sparkles size={16} />
-              {isGeneratingReview ? "生成中" : "AI 生成评论回复"}
+              {isGeneratingReview ? "生成中" : "智能生成评论回复"}
             </button>
             {aiStatus && <span>{aiStatus}</span>}
           </div>
-          <OutputCard icon={<Mail size={18} />} title={aiReviewReply ? "AI 商家回复" : "商家回复"} text={finalReviewReply} />
+          <OutputCard icon={<Mail size={18} />} title={aiReviewReply ? "定制商家回复" : "商家回复"} text={finalReviewReply} />
         </section>
       </section>
 

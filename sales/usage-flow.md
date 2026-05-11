@@ -23,7 +23,7 @@ flowchart TD
   O -- "No" --> P["Send one polite payment reminder"]
   P --> N
   O -- "Yes" --> Q["Download full delivery pack"]
-  Q --> R["Use AI review reply if available; fallback reply works if OpenAI fails"]
+  Q --> R["Use intelligent review reply; no-credit fallback works without OpenAI credits"]
   R --> S["Review tone and adjust obvious wording"]
   S --> T["Send first draft delivery email"]
   T --> U["Track client reply, revision request, and next action in CRM"]
@@ -47,7 +47,7 @@ flowchart TD
 3. Only create/send a PayPal invoice after the prospect clearly agrees to a package.
 4. After payment, use the Client Intake section to download the full delivery pack.
 5. Deliver the first version quickly, then ask for a simple testimonial after they approve it.
-6. If the AI endpoint returns fallback output, keep using it for delivery and fix the OpenAI account separately.
+6. If the endpoint returns fallback output, keep using it for delivery. Add OpenAI API credits later only when true AI output becomes necessary.
 
 ## Resume Summary
 

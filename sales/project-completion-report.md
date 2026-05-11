@@ -14,7 +14,7 @@ https://masonmaiii21-debug.github.io/local-retention-kit/
 
 1. Public demo website for prospects.
 2. Follow-up, rebooking, and review reply generator.
-3. Optional AI review reply endpoint through Supabase Edge Function.
+3. Optional intelligent review reply endpoint through Supabase Edge Function.
 4. Safe fallback reply generation when OpenAI is unavailable.
 5. Local CRM with optional Supabase cloud save.
 6. CSV order import for Square, Shopify, Wix, Clover-style exports.
@@ -27,23 +27,23 @@ https://masonmaiii21-debug.github.io/local-retention-kit/
 
 The website is wired to a US Supabase Edge Function. The function can call OpenAI without exposing the API key to the public frontend.
 
-At the last test, the OpenAI key authenticated successfully, but OpenAI generation endpoints returned server-side `500` errors. The function now catches that failure and returns a review-specific fallback reply, so the customer-facing workflow still works.
+Current decision: do not add OpenAI credits yet. The OpenAI Platform account shows no available API credits, so true OpenAI output is disabled until credits are added. The function catches that case and returns a review-specific fallback reply, so the customer-facing workflow still works.
 
-To enable true OpenAI output instead of fallback output, check the OpenAI Platform account billing, usage limits, project status, and organization settings in the browser session:
+To enable true OpenAI output instead of fallback output, add API credits and then retest the endpoint:
 
 ```text
 https://platform.openai.com/settings/organization/billing
 https://platform.openai.com/settings/organization/limits
 ```
 
-ChatGPT Plus/Pro billing and API billing are separate.
+ChatGPT Plus/Pro billing and API billing are separate. Until credits are added, sell the project as a productized retention setup rather than a full AI SaaS.
 
 ## Resume Version
 
 **Local Retention Kit - Productized Service MVP**
 
 - Built a React/Vite MVP for local service businesses to generate follow-up, rebooking, and review-response copy.
-- Integrated Supabase for optional cloud persistence and server-side AI generation.
+- Integrated Supabase for optional cloud persistence and server-side reply generation.
 - Designed a fallback generation path so user-facing workflows remain available during third-party AI outages.
 - Added CSV order import to turn exported order history into a follow-up CRM.
 - Created a productized service workflow with pricing, intake, payment notes, and downloadable delivery packs.
