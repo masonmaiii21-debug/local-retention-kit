@@ -527,6 +527,51 @@ function stageFromOrders(orderCount, days, rebookDays = 28) {
   return "Booked";
 }
 
+function leadOrderCount(lead) {
+  const match = String(lead.need || "").match(/\((\d+)\s+orders?\)/i);
+  if (match) return Number(match[1]);
+  return lead.stage === "Due to rebook" ? 1 : 0;
+}
+
+function leadServiceName(lead) {
+  return String(lead.need || "recent service").replace(/\s*\(\d+\s+orders?\)\s*$/i, "").trim() || "recent service";
+}
+
+function leadCustomerType(lead) {
+  if (lead.stage === "Due to rebook") return "Returning customer";
+  if (lead.stage === "No reply") return "Silent prospect";
+  if (lead.stage === "Quoted") return "Quoted lead";
+  if (lead.stage === "Booked") return "Booked customer";
+  return "New inquiry";
+}
+
+function leadPriority(lead, rebookDays) {
+  if (lead.stage === "No reply" && lead.days >= 14) return "High";
+  if (lead.stage === "Due to rebook" && lead.days >= rebookDays + 14) return "High";
+  if (lead.stage === "No reply" || lead.stage === "Due to rebook") return "Medium";
+  return "Low";
+}
+
+function leadNextAction(lead, rebookDays) {
+  if (lead.stage === "Due to rebook") {
+    return lead.days >= rebookDays + 14
+      ? "Send a warm rebooking reminder with two available times."
+      : "Send a light reminder that it may be time to book again.";
+  }
+
+  if (lead.stage === "No reply") {
+    return lead.days >= 14
+      ? "Send one short final follow-up and make the next step easy."
+      : "Send a soft check-in that removes friction around booking.";
+  }
+
+  if (lead.stage === "Quoted") {
+    return "Follow up on the quote and offer the simplest booking option.";
+  }
+
+  return "Keep this customer in the tracker and wait for the next trigger.";
+}
+
 function ordersToLeads(csvText, rebookDays = 28) {
   const rows = parseCsv(csvText);
   if (rows.length < 2) return [];
@@ -1602,12 +1647,50 @@ function App() {
             <h2>Suggested follow-ups</h2>
           </div>
           <div className="task-list">
-            {dueLeads.map((lead) => (
-              <button key={lead.id} onClick={() => applyLead(lead)}>
-                <strong>{lead.name}</strong>
-                <span>{lead.stage} · {lead.days} days since contact · {lead.need}</span>
-              </button>
-            ))}
+            {dueLeads.map((lead) => {
+              const orderCount = leadOrderCount(lead);
+              const serviceName = leadServiceName(lead);
+              const priority = leadPriority(lead, rebookDays);
+              const nextAction = leadNextAction(lead, rebookDays);
+
+              return (
+                <article className="task-item" key={lead.id}>
+                  <button className="task-trigger" onClick={() => applyLead(lead)}>
+                    <div>
+                      <strong>{lead.name}</strong>
+                      <span>{lead.stage} · {lead.days} days since contact · {serviceName}</span>
+                    </div>
+                    <span className={`priority-pill ${priority.toLowerCase()}`}>{priority}</span>
+                  </button>
+                  <div className="task-popover" role="status">
+                    <div className="popover-topline">
+                      <strong>{leadCustomerType(lead)}</strong>
+                      <span>{priority} priority</span>
+                    </div>
+                    <div className="popover-grid">
+                      <div>
+                        <span>Orders</span>
+                        <strong>{orderCount || "New"}</strong>
+                      </div>
+                      <div>
+                        <span>Total value</span>
+                        <strong>${lead.value || 0}</strong>
+                      </div>
+                      <div>
+                        <span>Days waiting</span>
+                        <strong>{lead.days}</strong>
+                      </div>
+                      <div>
+                        <span>Service</span>
+                        <strong>{serviceName}</strong>
+                      </div>
+                    </div>
+                    <p>{nextAction}</p>
+                    <small>Click the customer to load this follow-up into the message builder.</small>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
