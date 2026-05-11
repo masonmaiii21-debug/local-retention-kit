@@ -23,7 +23,7 @@ https://masonmaiii21-debug.github.io/local-retention-kit/
 - 未成交客户跟进文案生成
 - 复购提醒文案生成
 - Google/Yelp 等评论回复文案生成
-- 评论甄别：按评论内容和星级识别 positive / mixed / negative、问题类型和严重程度，再生成对应回复
+- 评论甄别：按评论内容和星级识别 positive / neutral / mixed / negative、问题类型和严重程度，再生成对应回复
 - 可编辑客户管道，自动保存到浏览器
 - Supabase 配置存在时支持登录和云端保存
 - 导入订单 CSV，按客户合并订单并自动标记复购/跟进状态

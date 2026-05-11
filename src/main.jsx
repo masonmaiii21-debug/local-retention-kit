@@ -123,6 +123,14 @@ function buildReviewReply({ businessName, rating, review, tone }) {
     return `Thank you for taking the time to share this. I appreciate you mentioning ${insight.detail}; it helps ${business} understand what went well and what we should tighten up. We will review this with the team and keep improving.`;
   }
 
+  if (insight.sentiment === "neutral") {
+    if (short) {
+      return `Thank you for sharing this. We appreciate the note about ${insight.detail} and appreciate you choosing ${business}.`;
+    }
+
+    return `Thank you for sharing this with us. We appreciate the note about ${insight.detail}; it helps ${business} understand the visit from your point of view. We are glad we had the chance to help and hope the next visit feels even smoother.`;
+  }
+
   if (short) {
     return `Thank you for the kind review. We are glad ${insight.detail} stood out, and we appreciate you choosing ${business}.`;
   }
@@ -136,6 +144,7 @@ function includesAny(text, words) {
 
 function analyzeReview({ rating, review }) {
   const lower = String(review || "").toLowerCase();
+  const sentimentText = lower.replaceAll("not bad", "");
   const signals = [
     {
       type: "Pet care concern",
@@ -174,6 +183,24 @@ function analyzeReview({ rating, review }) {
       detail: "your pet feeling comfortable during the visit",
     },
     {
+      type: "Suggestion",
+      severity: "low",
+      keys: ["could be", "could have", "would be nice", "wish", "suggest", "suggestion", "maybe next time", "next time", "should offer", "should add"],
+      detail: "your suggestion for making the experience better",
+    },
+    {
+      type: "Neutral experience",
+      severity: "low",
+      keys: ["okay", "fine", "average", "normal", "standard", "as expected", "nothing special", "decent", "alright", "not bad"],
+      detail: "the visit feeling straightforward",
+    },
+    {
+      type: "Uncertain feedback",
+      severity: "low",
+      keys: ["not sure", "maybe", "i think", "seems", "probably", "mostly", "overall"],
+      detail: "your honest note about the visit",
+    },
+    {
       type: "Positive service",
       severity: "low",
       keys: ["friendly", "kind", "great", "amazing", "love", "loved", "patient", "clean", "fresh", "beautiful", "perfect", "happy"],
@@ -184,10 +211,12 @@ function analyzeReview({ rating, review }) {
   const positiveWords = ["great", "amazing", "love", "loved", "friendly", "kind", "happy", "perfect", "excellent", "recommend"];
   const matched = signals.filter((signal) => includesAny(lower, signal.keys));
   const hasHighRiskIssue = matched.some((signal) => signal.severity === "high");
-  const hasNegativeText = includesAny(lower, negativeWords) || matched.some((signal) => signal.severity === "high" || (signal.severity === "medium" && signal.type !== "Pet comfort"));
+  const hasNeutralText = matched.some((signal) => ["Suggestion", "Neutral experience", "Uncertain feedback"].includes(signal.type));
+  const hasNegativeText = includesAny(sentimentText, negativeWords) || matched.some((signal) => signal.severity === "high" || (signal.severity === "medium" && signal.type !== "Pet comfort"));
   const hasPositiveText = includesAny(lower, positiveWords) || matched.some((signal) => signal.type === "Positive service");
   const primary = matched.find((signal) => signal.severity === "high")
     || matched.find((signal) => signal.severity === "medium")
+    || matched.find((signal) => ["Suggestion", "Neutral experience", "Uncertain feedback"].includes(signal.type))
     || matched[0]
     || { type: "General feedback", severity: "low", detail: "the details of your visit" };
 
@@ -196,6 +225,8 @@ function analyzeReview({ rating, review }) {
     sentiment = "negative";
   } else if (rating === 3 || hasNegativeText) {
     sentiment = "mixed";
+  } else if (hasNeutralText || (!hasPositiveText && rating === 4)) {
+    sentiment = "neutral";
   }
 
   return {

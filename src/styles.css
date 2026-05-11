@@ -769,6 +769,12 @@ textarea {
   color: #665117;
 }
 
+.review-insight.neutral {
+  border-color: #bfd3d4;
+  background: #edf7f7;
+  color: #25565a;
+}
+
 .review-insight.positive {
   border-color: #cbdca3;
   background: #f2f7e6;
