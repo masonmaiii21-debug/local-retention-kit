@@ -1,6 +1,6 @@
 # Local Retention Kit
 
-一个面向本地服务商的轻量 MVP：帮助宠物美容、美容护理、装修维修等小商家生成未成交跟进、复购提醒和评论回复文案。
+一个面向宠物美容、移动美容、宠物日托/寄养等本地宠物服务商的轻量 MVP：帮助商家生成未成交跟进、复购提醒和评论回复文案。
 
 这个版本前端不暴露 OpenAI API key。评论回复可以通过 Supabase Edge Function 走服务端生成；如果 OpenAI API 没有充值或临时不可用，系统会自动返回按评论内容定制的备用回复，避免客户流程中断。
 
@@ -14,12 +14,12 @@ https://masonmaiii21-debug.github.io/local-retention-kit/
 
 - 泛 CRM、泛 AI 评论回复竞争很大，很多工具已经按月收费。
 - 垂直小行业更容易成交，因为客户不是买软件，而是买“多拿复购、少漏跟进、评论有人回”的结果。
-- 宠物美容、医美护理、装修维修都有明确的复购或报价后跟进场景。
+- 先聚焦宠物服务商，因为复购周期清晰、评论重要、老板常用短信/Instagram/Email 跟进客户。
 - 首单可以先卖服务包，而不是卖 SaaS 订阅。
 
 ## MVP 功能
 
-- 垂直行业切换：宠物美容、医美/美容护理、装修/维修承包商
+- 宠物服务商专用演示：宠物美容、移动美容、宠物日托/寄养优先
 - 未成交客户跟进文案生成
 - 复购提醒文案生成
 - Google/Yelp 等评论回复文案生成
@@ -82,6 +82,6 @@ PayPal 发票创建状态见 [sales/paypal-invoice-status.md](sales/paypal-invoi
 
 **Local Retention Kit - Vertical SaaS MVP**
 
-- Built a React/Vite MVP for local service businesses to generate follow-up, rebooking, and review-response copy across multiple verticals.
-- Designed a niche-first go-to-market workflow targeting pet grooming, med spa, and contractor businesses.
+- Built a React/Vite MVP for pet service businesses to generate follow-up, rebooking, and review-response copy.
+- Designed a niche-first go-to-market workflow targeting pet grooming and local pet service businesses.
 - Implemented reusable content-generation logic, responsive UI, and a demo CRM pipeline to support productized service sales.

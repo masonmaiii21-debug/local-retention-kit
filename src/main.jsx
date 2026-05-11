@@ -32,31 +32,12 @@ const niches = {
     pain: "客户做完一次护理后没有自动复购提醒，Google 评论也经常没人回。",
     promise: "7 天内补齐复购提醒、未成交跟进和评论回复文案。",
   },
-  medspa: {
-    label: "医美/美容护理",
-    business: "Glow Studio",
-    buyer: "美容院老板",
-    service: "facial treatment",
-    objection: "trust",
-    channels: ["SMS", "Email", "WhatsApp"],
-    pain: "咨询客户多，但没有系统区分高意向和犹豫客户。",
-    promise: "把咨询、复购和评价回复做成一套可复制流程。",
-  },
-  contractor: {
-    label: "装修/维修承包商",
-    business: "Northside Repairs",
-    buyer: "维修公司老板",
-    service: "estimate visit",
-    objection: "schedule",
-    channels: ["SMS", "Email", "Facebook DM"],
-    pain: "报价后客户不回复，老板没有时间逐个追踪。",
-    promise: "让报价后的 1/3/7 天跟进变得标准化。",
-  },
 };
 
 const leadStages = ["新咨询", "已报价", "未回复", "已预约", "需复购"];
 const tones = ["专业", "温暖", "简短", "挽回"];
 const aiEndpoint = import.meta.env.VITE_AI_ENDPOINT || "";
+const visibleNicheKeys = ["pet"];
 const sampleOrdersCsv = `customer_name,email,phone,order_date,amount,service
 Mia Chen,mia@example.com,555-0101,2026-04-24,85,dog bath + trim
 Lucas Brown,lucas@example.com,555-0102,2026-04-21,140,two-dog grooming
@@ -886,11 +867,11 @@ function App() {
 
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">15 天可投入的小服务项目</p>
-            <h1>给本地服务商卖“复购 + 跟进 + 评论回复”自动化包</h1>
+            <p className="eyebrow">15 天可投入的宠物服务项目</p>
+            <h1>给宠物美容店卖“复购 + 跟进 + 评论回复”服务包</h1>
             <p>
               先不做重 SaaS。用可演示工具、行业模板和交付文档，包装成一次性部署服务，
-              向宠物美容、美容护理、装修维修这类复购或报价驱动行业收费。
+              向宠物美容、移动美容、宠物日托/寄养这类有复购场景的本地商家收费。
             </p>
             <div className="hero-actions">
               <a className="primary" href="#generator">
@@ -1017,18 +998,21 @@ function App() {
 
       <section className="workspace" id="generator">
         <aside className="sidebar">
-          <h2>选择垂直行业</h2>
+          <h2>当前主攻行业</h2>
           <div className="niche-list">
-            {Object.entries(niches).map(([key, item]) => (
-              <button
-                className={key === niche ? "selected" : ""}
-                key={key}
-                onClick={() => switchNiche(key)}
-              >
-                <span>{item.label}</span>
-                <small>{item.buyer}</small>
-              </button>
-            ))}
+            {visibleNicheKeys.map((key) => {
+              const item = niches[key];
+              return (
+                <button
+                  className={key === niche ? "selected" : ""}
+                  key={key}
+                  onClick={() => switchNiche(key)}
+                >
+                  <span>{item.label}</span>
+                  <small>{item.buyer}</small>
+                </button>
+              );
+            })}
           </div>
 
           <div className="offer-box">
@@ -1494,10 +1478,10 @@ function App() {
         </div>
         <div className="launch-grid">
           {[
-            ["1-3 天", "完善 Demo、截图、服务说明页，准备 3 个行业样例。"],
-            ["4-6 天", "整理 60 个潜在客户名单：Google Maps、Instagram、本地商会目录。"],
-            ["7-10 天", "每天发 15 条定制私信，附一段免费评论回复或跟进文案。"],
-            ["11-15 天", "以 $99-$299 接首单，交付模板、设置教程和 7 天文案包。"],
+            ["1-3 天", "完善宠物美容 Demo、截图、服务说明页，准备 3 个宠物店样例。"],
+            ["4-6 天", "整理 60 个宠物美容、移动美容、宠物日托/寄养潜在客户。"],
+            ["7-10 天", "每天发 15 条定制邮件或私信，附一段免费评论回复或复购提醒。"],
+            ["11-15 天", "以 $99-$299 接首单，交付宠物服务商可直接使用的文案包。"],
           ].map(([day, text]) => (
             <div className="launch-card" key={day}>
               <strong>{day}</strong>
