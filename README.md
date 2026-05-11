@@ -55,6 +55,7 @@ AI 评论回复配置见 [AI_SETUP.md](AI_SETUP.md)。
 成交后的演示流程、订单导入、首批文案生成和交付清单见 [sales/client-handoff.md](sales/client-handoff.md)。
 开始找第一个客户的执行清单见 [sales/day-1-outreach-plan.md](sales/day-1-outreach-plan.md)。
 第一批潜在客户名单见 [sales/prospect-list-template.csv](sales/prospect-list-template.csv)，前 5 条私信草稿见 [sales/first-5-message-drafts.md](sales/first-5-message-drafts.md)。
+第二批邮件草稿见 [sales/second-batch-message-drafts.md](sales/second-batch-message-drafts.md)。
 已创建的 Gmail 草稿记录见 [sales/gmail-drafts-created.md](sales/gmail-drafts-created.md)。
 Instagram 账号核对见 [sales/instagram-accounts.md](sales/instagram-accounts.md)，DM 草稿见 [sales/instagram-dm-drafts.md](sales/instagram-dm-drafts.md)。
 Instagram 已发送/待发送记录见 [sales/instagram-dms-sent.md](sales/instagram-dms-sent.md)。
