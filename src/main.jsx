@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import {
   ArrowRight,
   AlertCircle,
+  Calculator,
   Check,
   Copy,
   Download,
@@ -535,6 +536,9 @@ function App() {
   const [clientTools, setClientTools] = useState("Google reviews, Instagram DMs, appointment list");
   const [clientDeadline, setClientDeadline] = useState("within 24 hours after payment");
   const [clientVoice, setClientVoice] = useState("friendly, calm, and concise");
+  const [missedRebookings, setMissedRebookings] = useState(8);
+  const [averageTicket, setAverageTicket] = useState(85);
+  const [recoveryRate, setRecoveryRate] = useState(25);
 
   const active = niches[niche];
   const followUp = useMemo(
@@ -863,6 +867,8 @@ function App() {
   const dueLeads = leads.filter((lead) => lead.stage === "未回复" || lead.stage === "已报价" || lead.stage === "需复购");
   const totalPipelineValue = leads.reduce((sum, lead) => sum + Number(lead.value || 0), 0);
   const activePackage = servicePackages[clientPackage] || servicePackages.Starter;
+  const monthlyRecovered = Math.round(Number(missedRebookings || 0) * Number(averageTicket || 0) * (Number(recoveryRate || 0) / 100));
+  const annualRecovered = monthlyRecovered * 12;
 
   return (
     <main>
@@ -896,6 +902,9 @@ function App() {
               <a className="secondary" href="#offer">
                 看报价
               </a>
+              <a className="secondary" href="#client-demo">
+                客户展示页
+              </a>
               <a className="secondary" href="#sample-pack">
                 生成免费样例
               </a>
@@ -926,6 +935,83 @@ function App() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="client-demo" id="client-demo">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="eyebrow">Client-facing Demo</p>
+            <h2>给商家看的英文销售页面</h2>
+          </div>
+          <p className="section-note">
+            这部分可以直接给美国本地商家看：少讲技术，多讲复购、评论回复和少漏跟进。
+          </p>
+        </div>
+
+        <div className="client-demo-grid">
+          <article className="client-pitch">
+            <p className="eyebrow">For local pet service businesses</p>
+            <h3>Bring more past customers back without adding another complicated app.</h3>
+            <p>
+              Local Retention Kit gives your team ready-to-send review replies, rebooking reminders,
+              and follow-up messages for customers who asked about service but never booked.
+            </p>
+            <div className="pitch-points">
+              <span><Check size={16} /> Ready-to-copy messages</span>
+              <span><Check size={16} /> Simple customer follow-up tracker</span>
+              <span><Check size={16} /> Works with your existing email, text, or DM workflow</span>
+            </div>
+            <div className="client-actions">
+              <a className="primary" href="#sample-pack">See free samples</a>
+              <a className="secondary dark" href="#intake">Start a setup</a>
+            </div>
+          </article>
+
+          <aside className="roi-panel">
+            <div className="roi-header">
+              <span><Calculator size={18} /></span>
+              <div>
+                <p className="eyebrow">Simple ROI estimate</p>
+                <h3>What could better follow-up recover?</h3>
+              </div>
+            </div>
+            <div className="roi-inputs">
+              <label>
+                Missed rebookings per month
+                <input
+                  type="number"
+                  min="0"
+                  value={missedRebookings}
+                  onChange={(event) => setMissedRebookings(Number(event.target.value))}
+                />
+              </label>
+              <label>
+                Average ticket
+                <input
+                  type="number"
+                  min="0"
+                  value={averageTicket}
+                  onChange={(event) => setAverageTicket(Number(event.target.value))}
+                />
+              </label>
+              <label>
+                Recovery rate %
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={recoveryRate}
+                  onChange={(event) => setRecoveryRate(Number(event.target.value))}
+                />
+              </label>
+            </div>
+            <div className="roi-result">
+              <span>Estimated recovered revenue</span>
+              <strong>${monthlyRecovered}/mo</strong>
+              <small>${annualRecovered}/yr if the same pattern holds</small>
+            </div>
+          </aside>
         </div>
       </section>
 

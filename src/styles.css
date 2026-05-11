@@ -15,18 +15,21 @@ body {
 }
 
 body[data-shot="generator"] .hero,
+body[data-shot="generator"] .client-demo,
 body[data-shot="generator"] .pipeline,
 body[data-shot="generator"] .sample-section,
 body[data-shot="generator"] .intake-section,
 body[data-shot="generator"] .offer-section,
 body[data-shot="generator"] .launch,
 body[data-shot="offer"] .hero,
+body[data-shot="offer"] .client-demo,
 body[data-shot="offer"] .workspace,
 body[data-shot="offer"] .pipeline,
 body[data-shot="offer"] .sample-section,
 body[data-shot="offer"] .intake-section,
 body[data-shot="offer"] .launch,
 body[data-shot="crm"] .hero,
+body[data-shot="crm"] .client-demo,
 body[data-shot="crm"] .workspace,
 body[data-shot="crm"] .offer-section,
 body[data-shot="crm"] .sample-section,
@@ -229,6 +232,143 @@ main {
   margin-top: 4px;
   color: #64706b;
   font-size: 13px;
+}
+
+.client-demo {
+  width: min(1180px, calc(100% - 32px));
+  margin: 24px auto 18px;
+  padding: 20px;
+  background: #fffdf8;
+  border: 1px solid #e2ddd2;
+  border-radius: 8px;
+}
+
+.client-demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.client-pitch,
+.roi-panel {
+  border-radius: 8px;
+  border: 1px solid #e2ddd2;
+}
+
+.client-pitch {
+  padding: 22px;
+  background: #21302d;
+  color: #f9faf7;
+}
+
+.client-pitch .eyebrow {
+  color: #d6f264;
+}
+
+.client-pitch h3 {
+  max-width: 680px;
+  margin: 8px 0 12px;
+  font-size: 34px;
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.client-pitch p:not(.eyebrow) {
+  max-width: 680px;
+  margin: 0;
+  color: rgba(249, 250, 247, 0.76);
+  line-height: 1.7;
+}
+
+.pitch-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.pitch-points span {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(249, 250, 247, 0.9);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.client-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.secondary.dark {
+  border-color: rgba(249, 250, 247, 0.32);
+  color: #f9faf7;
+}
+
+.roi-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: #f8f5ee;
+}
+
+.roi-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roi-header > span {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #d6f264;
+  color: #21302d;
+}
+
+.roi-header h3 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.roi-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.roi-result {
+  min-height: 138px;
+  display: grid;
+  align-content: center;
+  padding: 18px;
+  border-radius: 8px;
+  background: #edf2df;
+}
+
+.roi-result span,
+.roi-result small {
+  color: #587064;
+  font-weight: 800;
+}
+
+.roi-result strong {
+  display: block;
+  margin: 6px 0;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .workspace {
@@ -1015,7 +1155,8 @@ pre {
 
 @media (max-width: 900px) {
   .hero-grid,
-  .workspace {
+  .workspace,
+  .client-demo-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1038,6 +1179,8 @@ pre {
   .form-grid,
   .output-grid,
   .offer-grid,
+  .pitch-points,
+  .roi-inputs,
   .intake-grid,
   .delivery-output-grid,
   .import-panel,
@@ -1086,6 +1229,10 @@ pre {
 
   .hero-copy h1 {
     font-size: 38px;
+  }
+
+  .client-pitch h3 {
+    font-size: 28px;
   }
 
   .hero-copy p {
