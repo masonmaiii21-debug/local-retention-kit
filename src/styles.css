@@ -759,12 +759,11 @@ textarea {
 }
 
 .review-insight {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
+  display: grid;
+  gap: 6px;
+  width: min(100%, 680px);
   margin: 12px 0 0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #d8d1c5;
   background: #f8f5ee;
@@ -773,8 +772,22 @@ textarea {
   font-weight: 800;
 }
 
+.review-insight-main,
+.review-insight-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
 .review-insight strong {
   text-transform: capitalize;
+}
+
+.review-insight-meta {
+  color: #4b5853;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .review-insight.negative {

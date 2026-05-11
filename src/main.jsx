@@ -149,12 +149,32 @@ function includesAny(text, words) {
   return words.some((word) => text.includes(word));
 }
 
+function detectReviewLanguage(review) {
+  if (/[\u4e00-\u9fff]/.test(review)) return "Chinese";
+  if (/[\u3040-\u30ff]/.test(review)) return "Japanese";
+  if (/[\uac00-\ud7af]/.test(review)) return "Korean";
+  if (/[áéíóúñ¿¡]/i.test(review)) return "Spanish";
+  if (/[àâçéèêëîïôûùüÿœ]/i.test(review)) return "French";
+  if (/[äöüß]/i.test(review)) return "German";
+  return "English or unknown";
+}
+
+function reviewRecommendedAction({ sentiment, issueType }) {
+  if (issueType === "Pet care concern") return "Escalate privately before replying";
+  if (issueType === "Abusive or angry feedback") return "Acknowledge frustration calmly";
+  if (sentiment === "negative") return "Apologize and invite direct contact";
+  if (sentiment === "mixed") return "Acknowledge both sides and improve";
+  if (sentiment === "neutral") return "Thank them without overpraising";
+  return "Thank them and reinforce the good experience";
+}
+
 function analyzeReview({ rating, review }) {
   const lower = String(review || "").toLowerCase();
-  const sentimentText = lower
+  const searchText = `${lower} ${lower.replace(/[\s+*._\-#@!?,;:'"~|\\/()[\]{}，。！？、]+/g, "")}`;
+  const sentimentText = searchText
     .replaceAll("not bad", "")
     .replaceAll("差不多", "");
-  const positiveText = lower
+  const positiveText = searchText
     .replaceAll("not happy", "")
     .replaceAll("not professional", "")
     .replaceAll("not friendly", "")
@@ -181,8 +201,8 @@ function analyzeReview({ rating, review }) {
       type: "Abusive or angry feedback",
       severity: "medium",
       keys: [
-        "idiot", "stupid", "trash", "garbage", "scam", "fraud", "ripoff", "useless",
-        "傻逼", "垃圾", "骗子", "恶心", "坑", "坑钱", "滚", "废物", "无语",
+        "idiot", "stupid", "trash", "garbage", "scam", "fraud", "ripoff", "useless", "motherfucker",
+        "傻逼", "傻比", "垃圾", "骗子", "恶心", "坑", "坑钱", "滚", "废物", "无语", "你妈", "你媽", "他妈", "他媽", "妈的", "媽的", "草你", "操你", "卧槽", "我操", "cnm", "nmsl", "sb", "shabi",
         "idiota", "basura", "estafa", "inutil", "inútil",
         "arnaque", "nul", "nulle", "ordure",
         "dumm", "betrug", "müll", "muell",
@@ -296,10 +316,11 @@ function analyzeReview({ rating, review }) {
     "良い", "最高", "親切", "おすすめ",
     "좋", "친절", "완벽", "추천",
   ];
-  const matched = signals.filter((signal) => includesAny(lower, signal.keys));
+  const matched = signals.filter((signal) => includesAny(searchText, signal.keys));
   const hasHighRiskIssue = matched.some((signal) => signal.severity === "high");
+  const hasAbusiveLanguage = matched.some((signal) => signal.type === "Abusive or angry feedback");
   const hasNeutralText = matched.some((signal) => ["Suggestion", "Neutral experience", "Uncertain feedback"].includes(signal.type));
-  const hasNegatedPositivePhrase = includesAny(lower, ["not happy", "not professional", "not friendly", "not kind", "不专业", "不友好", "不好"]);
+  const hasNegatedPositivePhrase = includesAny(searchText, ["not happy", "not professional", "not friendly", "not kind", "不专业", "不友好", "不好"]);
   const hasNegativeText = includesAny(sentimentText, negativeWords) || matched.some((signal) => signal.severity === "high" || (signal.severity === "medium" && signal.type !== "Pet comfort"));
   const hasPositiveText = includesAny(positiveText, positiveWords) || (matched.some((signal) => signal.type === "Positive service") && !hasNegatedPositivePhrase);
   const primary = matched.find((signal) => signal.severity === "high")
@@ -309,7 +330,7 @@ function analyzeReview({ rating, review }) {
     || { type: "General feedback", severity: "low", detail: "the details of your visit" };
 
   let sentiment = "positive";
-  if (hasHighRiskIssue || rating <= 2 || (hasNegativeText && !hasPositiveText)) {
+  if (hasHighRiskIssue || hasAbusiveLanguage || rating <= 2 || (hasNegativeText && !hasPositiveText)) {
     sentiment = "negative";
   } else if (rating === 3 || hasNegativeText) {
     sentiment = "mixed";
@@ -322,6 +343,8 @@ function analyzeReview({ rating, review }) {
     issueType: primary.type,
     severity: primary.severity,
     detail: primary.detail,
+    language: detectReviewLanguage(review || ""),
+    recommendedAction: reviewRecommendedAction({ sentiment, issueType: primary.type }),
   };
 }
 
@@ -1576,9 +1599,15 @@ function App() {
               <textarea value={review} onChange={(event) => setReview(event.target.value)} />
             </label>
           </div>
-          <div className={`review-insight ${reviewInsight.sentiment}`}>
-            <strong>{reviewInsight.sentiment}</strong>
-            <span>{reviewInsight.issueType} · {reviewInsight.severity} priority</span>
+          <div className={`review-insight ${reviewInsight.sentiment}`} aria-live="polite">
+            <div className="review-insight-main">
+              <strong>{reviewInsight.sentiment}</strong>
+              <span>{reviewInsight.issueType} · {reviewInsight.severity} priority</span>
+            </div>
+            <div className="review-insight-meta">
+              <span>Language: {reviewInsight.language}</span>
+              <span>Action: {reviewInsight.recommendedAction}</span>
+            </div>
           </div>
           <div className="ai-actions">
             <button onClick={generateAiReviewReply} disabled={isGeneratingReview}>
