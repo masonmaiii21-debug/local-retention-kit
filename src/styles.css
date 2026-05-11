@@ -738,6 +738,43 @@ textarea {
   line-height: 1.45;
 }
 
+.review-insight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d8d1c5;
+  background: #f8f5ee;
+  color: #33413d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.review-insight strong {
+  text-transform: capitalize;
+}
+
+.review-insight.negative {
+  border-color: #e5b8ac;
+  background: #fff1ed;
+  color: #7b2d27;
+}
+
+.review-insight.mixed {
+  border-color: #e2c879;
+  background: #fff8df;
+  color: #665117;
+}
+
+.review-insight.positive {
+  border-color: #cbdca3;
+  background: #f2f7e6;
+  color: #3f5f35;
+}
+
 .output-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

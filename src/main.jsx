@@ -108,19 +108,102 @@ ${business}`;
 
 function buildReviewReply({ businessName, rating, review, tone }) {
   const business = businessName.trim() || "Your business";
-  const positive = rating >= 4;
-  const apology = rating <= 2;
-  const detail = review.trim() ? ` We appreciate you mentioning "${review.trim().slice(0, 70)}".` : "";
+  const insight = analyzeReview({ rating, review });
+  const short = tone === "Short";
 
-  if (apology) {
-    return `Thank you for the feedback. I am sorry your experience with ${business} did not meet the standard we aim for.${detail} Please contact us directly so we can understand what happened and make this right.`;
+  if (insight.sentiment === "negative") {
+    if (short) {
+      return `Thank you for telling us. I am sorry the visit with ${business} fell short, especially around ${insight.detail}. Please contact us directly so we can understand what happened and make the next step right.`;
+    }
+
+    return `Thank you for being honest about your experience. I am sorry the visit with ${business} did not meet the standard we aim for, especially around ${insight.detail}. Please contact us directly so we can understand what happened, review it with the team, and make the next step right.`;
   }
 
-  if (positive) {
-    return `Thank you for the ${rating}-star review. We are glad you had a good experience with ${business}.${detail} We appreciate your support and hope to see you again soon.`;
+  if (insight.sentiment === "mixed") {
+    return `Thank you for taking the time to share this. I appreciate you mentioning ${insight.detail}; it helps ${business} understand what went well and what we should tighten up. We will review this with the team and keep improving.`;
   }
 
-  return `Thank you for taking the time to share this. We appreciate the honest feedback about ${business}.${detail} We will review this with the team and keep improving.`;
+  if (short) {
+    return `Thank you for the kind review. We are glad ${insight.detail} stood out, and we appreciate you choosing ${business}.`;
+  }
+
+  return `Thank you so much for the thoughtful review. We are glad ${insight.detail} stood out, and we really appreciate you choosing ${business}. We hope to see you again soon.`;
+}
+
+function includesAny(text, words) {
+  return words.some((word) => text.includes(word));
+}
+
+function analyzeReview({ rating, review }) {
+  const lower = String(review || "").toLowerCase();
+  const signals = [
+    {
+      type: "Pet care concern",
+      severity: "high",
+      keys: ["hurt", "injured", "injury", "cut my dog", "cut my pet", "nicked", "scratch", "scratched", "bleeding", "burn", "rash", "vet", "rough", "unsafe", "traumatized", "limping"],
+      detail: "your concern about your pet's comfort and safety",
+    },
+    {
+      type: "Grooming quality",
+      severity: "medium",
+      keys: ["bad haircut", "uneven", "too short", "shaved", "patchy", "missed spots", "dirty", "not clean", "smell", "not what i asked", "ignored instructions", "wrong cut"],
+      detail: "the grooming result not matching expectations",
+    },
+    {
+      type: "Scheduling issue",
+      severity: "medium",
+      keys: ["late", "wait", "waiting", "delayed", "rescheduled", "cancelled", "canceled", "appointment", "booking"],
+      detail: "the scheduling or wait-time experience",
+    },
+    {
+      type: "Pricing concern",
+      severity: "medium",
+      keys: ["expensive", "overcharged", "price", "cost", "charge", "fee"],
+      detail: "your concern about pricing",
+    },
+    {
+      type: "Staff experience",
+      severity: "medium",
+      keys: ["rude", "unfriendly", "ignored", "attitude", "not helpful", "dismissive"],
+      detail: "the way the interaction with our team felt",
+    },
+    {
+      type: "Pet comfort",
+      severity: "low",
+      keys: ["nervous", "anxious", "scared", "shy", "senior dog", "puppy"],
+      detail: "your pet feeling comfortable during the visit",
+    },
+    {
+      type: "Positive service",
+      severity: "low",
+      keys: ["friendly", "kind", "great", "amazing", "love", "loved", "patient", "clean", "fresh", "beautiful", "perfect", "happy"],
+      detail: "the visit feeling smooth and positive",
+    },
+  ];
+  const negativeWords = ["bad", "terrible", "awful", "worst", "disappointed", "upset", "not happy", "poor", "never again", "refund", "complaint"];
+  const positiveWords = ["great", "amazing", "love", "loved", "friendly", "kind", "happy", "perfect", "excellent", "recommend"];
+  const matched = signals.filter((signal) => includesAny(lower, signal.keys));
+  const hasHighRiskIssue = matched.some((signal) => signal.severity === "high");
+  const hasNegativeText = includesAny(lower, negativeWords) || matched.some((signal) => signal.severity === "high" || (signal.severity === "medium" && signal.type !== "Pet comfort"));
+  const hasPositiveText = includesAny(lower, positiveWords) || matched.some((signal) => signal.type === "Positive service");
+  const primary = matched.find((signal) => signal.severity === "high")
+    || matched.find((signal) => signal.severity === "medium")
+    || matched[0]
+    || { type: "General feedback", severity: "low", detail: "the details of your visit" };
+
+  let sentiment = "positive";
+  if (hasHighRiskIssue || rating <= 2 || (hasNegativeText && !hasPositiveText)) {
+    sentiment = "negative";
+  } else if (rating === 3 || hasNegativeText) {
+    sentiment = "mixed";
+  }
+
+  return {
+    sentiment,
+    issueType: primary.type,
+    severity: primary.severity,
+    detail: primary.detail,
+  };
 }
 
 function buildRebook({ businessName, leadName, service, tone }) {
@@ -544,6 +627,10 @@ function App() {
     () => buildReviewReply({ businessName, rating, review, tone }),
     [businessName, rating, review, tone]
   );
+  const reviewInsight = useMemo(
+    () => analyzeReview({ rating, review }),
+    [rating, review]
+  );
   const finalReviewReply = aiReviewReply || reviewReply;
   const rebook = useMemo(
     () => buildRebook({ businessName, leadName, service, tone }),
@@ -793,7 +880,8 @@ function App() {
         throw new Error(data.error || "Generation failed");
       }
 
-      setAiReviewReply(String(data.text || "").trim());
+      const generatedText = data.source === "fallback" ? reviewReply : String(data.text || "").trim();
+      setAiReviewReply(generatedText);
       setAiStatus(
         data.source === "fallback"
           ? "Custom reply generated using backup mode."
@@ -1216,6 +1304,10 @@ function App() {
               Review text
               <textarea value={review} onChange={(event) => setReview(event.target.value)} />
             </label>
+          </div>
+          <div className={`review-insight ${reviewInsight.sentiment}`}>
+            <strong>{reviewInsight.sentiment}</strong>
+            <span>{reviewInsight.issueType} · {reviewInsight.severity} priority</span>
           </div>
           <div className="ai-actions">
             <button onClick={generateAiReviewReply} disabled={isGeneratingReview}>
